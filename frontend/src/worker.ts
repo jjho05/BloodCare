@@ -6,6 +6,7 @@ env.useBrowserCache = true;
 let GROQ_API_KEY = "";
 let extractor: any = null;
 let dictionaryVectors: any[] = [];
+let fullDictionary: any[] = [];
 let isReady = false;
 
 function cosineSimilarity(a: number[], b: number[]) {
@@ -57,6 +58,7 @@ self.onmessage = async (e) => {
     while (!isReady) await new Promise(r => setTimeout(r, 200));
     try {
       self.postMessage({ type: 'status', message: 'Indexando diccionario...' });
+      fullDictionary = dictionary;
       dictionaryVectors = await Promise.all(dictionary.map(async (item: any) => {
         const output = await extractor(item.nombre, { pooling: 'mean', normalize: true });
         return { id: item.nombre, vector: Array.from(output.data) as number[] };
@@ -85,9 +87,9 @@ self.onmessage = async (e) => {
       const result = await response.json();
       const text = result.text.toLowerCase();
     
-      // 1. Detección de Glucosa (Números)
+      // 1. Detección de Glucosa (Números) - Rápida
       const glucoseMatch = text.match(/\b(\d{2,3})\b/);
-      if (glucoseMatch && (text.includes('glucosa') || text.includes('tengo') || text.includes('nivel') || text.includes('azúcar') || glucoseMatch[0].length >= 2)) {
+      if (glucoseMatch && (text.includes('glucosa') || text.includes('tengo') || text.includes('nivel') || text.includes('azúcar') || (glucoseMatch[0].length >= 2 && !text.includes('taco')))) {
         self.postMessage({ 
           type: 'result', 
           dataType: 'glucose', 
@@ -97,33 +99,47 @@ self.onmessage = async (e) => {
         return;
       }
 
-      // 2. Detección de Comida (Semántica)
-      const transcript = text;
+      // 2. Razonamiento Inteligente con LLM (Llama 3)
+      self.postMessage({ type: 'status', message: 'Analizando con IA... 🧠' });
       
-      console.log('[Groq] Transcripción:', transcript);
-
-      if (!transcript || transcript.length < 2) {
-        self.postMessage({ type: 'result', text: '', match: null, quantity: 1 });
-        return;
-      }
-
-      const quantity = extractQuantity(transcript);
+      const dictionaryContext = fullDictionary.map((f: any) => `- ${f.nombre} (Alias: ${f.alias.join(', ')})`).join('\n');
       
-      if (extractor && dictionaryVectors.length > 0) {
-        const queryOutput = await extractor(transcript, { pooling: 'mean', normalize: true });
-        const queryVector = Array.from(queryOutput.data) as number[];
-        
-        const scores = dictionaryVectors.map(dv => ({
-          id: dv.id,
-          score: cosineSimilarity(queryVector, dv.vector)
-        })).sort((a, b) => b.score - a.score);
+      const chatResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "llama3-8b-8192",
+          messages: [
+            { 
+              role: "system", 
+              content: `Eres BloodCare AI. Tu tarea es mapear el texto del usuario a un alimento de este diccionario:\n${dictionaryContext}\n\nResponde estrictamente en formato JSON: {"match": "Nombre Exacto", "quantity": numero, "is_food": boolean}` 
+            },
+            { role: "user", content: text }
+          ],
+          response_format: { type: "json_object" }
+        })
+      });
 
-        self.postMessage({ type: 'result', text: transcript, match: scores[0], quantity });
+      const chatData = await chatResponse.json();
+      const aiResult = JSON.parse(chatData.choices[0].message.content);
+
+      if (aiResult.is_food && aiResult.match) {
+        const foodItem = fullDictionary.find((f: any) => f.nombre === aiResult.match);
+        self.postMessage({ 
+          type: 'result', 
+          text: text, 
+          match: foodItem ? { id: foodItem.nombre, score: 1 } : null, 
+          quantity: aiResult.quantity || 1 
+        });
       } else {
-        self.postMessage({ type: 'result', text: transcript, match: null, quantity });
+        self.postMessage({ type: 'result', text: text, match: null, quantity: 1 });
       }
+
     } catch (err) {
-      self.postMessage({ type: 'status', message: 'Error Groq: ' + err });
+      self.postMessage({ type: 'status', message: 'Error IA: ' + err });
     }
   }
 };

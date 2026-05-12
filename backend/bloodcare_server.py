@@ -106,12 +106,20 @@ def add_glucose(req: GlucoseCreate, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "success", "id": record.id}
 
+@app.get("/records/glucose")
+def get_glucose(user_id: int, db: Session = Depends(get_db)):
+    return db.query(GlucoseRecord).filter(GlucoseRecord.user_id == user_id).order_by(GlucoseRecord.timestamp.desc()).limit(20).all()
+
 @app.post("/records/meal")
 def add_meal(req: MealCreate, db: Session = Depends(get_db)):
     record = MealLog(user_id=req.user_id, food_name=req.food_name, carbs_g=req.carbs_g)
     db.add(record)
     db.commit()
     return {"status": "success", "id": record.id}
+
+@app.get("/records/meal")
+def get_meals(user_id: int, db: Session = Depends(get_db)):
+    return db.query(MealLog).filter(MealLog.user_id == user_id).order_by(MealLog.timestamp.desc()).limit(10).all()
 
 @app.post("/vision/analyze")
 async def analyze_plate(file: UploadFile = File(...)):

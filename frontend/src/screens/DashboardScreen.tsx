@@ -40,31 +40,32 @@ const DashboardScreen = ({
       <main className="px-5 pt-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-8">
             <button
               onClick={() => setScreen('glucemia')}
-              className="bg-white text-zinc-500 h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-zinc-100 shadow-sm"
+              className="bg-white/80 h-20 rounded-[28px] font-bold flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all border border-outline/5 premium-shadow group"
             >
-              <History className="w-5 h-5" />
-              <span className="text-[10px] uppercase tracking-tighter">Glucemia</span>
+              <div className="w-8 h-8 bg-accent/10 rounded-xl flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
+                <History className="w-5 h-5" />
+              </div>
+              <span className="text-[9px] uppercase font-black tracking-widest text-on-surface-variant/70">Glucemia</span>
             </button>
             <button
               onClick={onVoiceStart}
-              className={`h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-lg ${
-                isRecording
-                  ? 'bg-error animate-pulse text-white shadow-error/20'
-                  : 'bg-primary text-white shadow-primary/20'
-              }`}
+              className={`h-20 rounded-[28px] font-bold flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all shadow-xl shadow-primary/20 grad-primary text-white relative overflow-hidden group`}
             >
-              <Mic className="w-6 h-6" />
-              <span className="text-[10px] uppercase tracking-tighter">{isRecording ? '...' : 'Dictar'}</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <Mic className={`w-7 h-7 ${isRecording ? 'animate-bounce' : ''}`} />
+              <span className="text-[9px] uppercase font-black tracking-widest">{isRecording ? 'Escuchando' : 'Dictar'}</span>
             </button>
             <button
               onClick={onManualGlucose}
-              className="bg-white text-error h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-error/10 shadow-sm"
+              className="bg-white/80 h-20 rounded-[28px] font-bold flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-all border border-outline/5 premium-shadow group"
             >
-              <Droplet className="w-5 h-5 fill-current" />
-              <span className="text-[10px] uppercase tracking-tighter">Glucosa</span>
+              <div className="w-8 h-8 bg-error/10 rounded-xl flex items-center justify-center text-error group-hover:scale-110 transition-transform">
+                <Droplet className="w-5 h-5 fill-current" />
+              </div>
+              <span className="text-[9px] uppercase font-black tracking-widest text-on-surface-variant/70">Glucosa</span>
             </button>
           </div>
           <div className="flex justify-center">
@@ -78,59 +79,53 @@ const DashboardScreen = ({
         </div>
 
         {/* Hero Card */}
-        <div className="bg-white ios-card-shadow p-8 rounded-[32px] border border-outline-variant/20 flex flex-col items-center text-center">
-          <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">
+        <div className="bg-white premium-shadow p-8 rounded-[32px] border border-outline/10 flex flex-col items-center text-center">
+          <span className="text-[11px] font-mono font-bold text-on-surface-variant mb-2 uppercase tracking-widest opacity-60">
             PROMEDIO DEL DÍA
           </span>
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className={`text-6xl font-bold tracking-tight ${isSafe ? 'text-on-surface' : 'text-error'}`}>
+          <div className="flex items-baseline gap-1 mb-4">
+            <span className={`text-7xl font-black tracking-tighter ${isSafe ? 'text-primary' : 'text-error'}`}>
               {avg}
             </span>
-            <span className="text-lg font-medium text-on-surface-variant/50">mg/dL</span>
+            <span className="text-xl font-bold text-on-surface-variant/30">mg/dL</span>
           </div>
           <div
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border mb-8 ${
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full mb-8 transition-colors ${
               isSafe
-                ? 'bg-green-50 border-green-100 text-green-700'
-                : 'bg-red-50 border-red-100 text-red-700'
+                ? 'bg-success/10 text-success'
+                : 'bg-error/10 text-error'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${isSafe ? 'bg-green-500' : 'bg-red-500'}`}></span>
-            <span className="text-[12px] font-semibold">{isSafe ? 'En rango normal' : 'Fuera de meta'}</span>
+            <span className={`w-2 h-2 rounded-full ${isSafe ? 'bg-success shadow-[0_0_8px_rgba(110,239,200,0.5)]' : 'bg-error'}`}></span>
+            <span className="text-[13px] font-bold uppercase tracking-wide">{isSafe ? 'Metabolismo Estable' : 'Fuera de meta'}</span>
           </div>
 
-          <div className="flex gap-6 pt-6 border-t border-outline-variant/10 w-full justify-center">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-error"></div>
-              <div className="flex flex-col items-start">
-                <span className="text-[10px] font-mono font-bold text-on-surface-variant/50 uppercase">MÁXIMO</span>
-                <span className="text-lg font-bold text-on-surface">
-                  {max}{' '}
-                  <span className="text-[10px] font-medium opacity-40 uppercase">Día</span>
-                </span>
+          <div className="flex gap-10 pt-8 border-t border-outline-variant w-full justify-center">
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] font-mono font-bold text-on-surface-variant mb-1 uppercase opacity-40">MÁXIMO</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-error"></div>
+                <span className="text-xl font-black text-on-surface">{max}</span>
               </div>
             </div>
-            <div className="w-[1px] h-8 bg-outline-variant/20"></div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-tertiary"></div>
-              <div className="flex flex-col items-start">
-                <span className="text-[10px] font-mono font-bold text-on-surface-variant/50 uppercase">MÍNIMO</span>
-                <span className="text-lg font-bold text-on-surface">
-                  {min}{' '}
-                  <span className="text-[10px] font-medium opacity-40 uppercase">Día</span>
-                </span>
+            <div className="w-[1px] h-10 bg-outline-variant"></div>
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] font-mono font-bold text-on-surface-variant mb-1 uppercase opacity-40">MÍNIMO</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
+                <span className="text-xl font-black text-on-surface">{min}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Security Detail */}
-        <div className="bg-white ios-card-shadow p-5 rounded-2xl border border-outline-variant/30 flex items-center justify-between">
+        <div className="bg-white/50 backdrop-blur-md p-5 rounded-3xl border border-outline/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="font-bold text-on-surface-variant text-sm">Privacidad Local Garantizada</span>
+            <div className="w-2 h-2 rounded-full bg-success"></div>
+            <span className="font-bold text-on-surface-variant text-sm tracking-tight">Privacidad Local Garantizada</span>
           </div>
-          <ShieldCheck className="text-on-surface-variant/40 w-5 h-5" />
+          <ShieldCheck className="text-primary/30 w-5 h-5" />
         </div>
       </main>
     </motion.div>

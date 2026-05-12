@@ -1,41 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Colors based on BloodCare iOS Native Minimalist theme */
-  --color-primary: #004ad4;
-  --color-primary-container: #3265ef;
-  --color-on-primary: #ffffff;
-  --color-on-primary-container: #f5f4ff;
+  /* Paleta BloodCare Premium v61.2 */
+  --color-primary: #1F48FF;
+  --color-primary-container: #4259D1;
+  --color-secondary: #07E1FF;
+  --color-accent: #99ACFF;
+  --color-success: #6EEFC8;
   
-  --color-surface: #faf8ff;
-  --color-surface-container: #ededf9;
-  --color-surface-container-low: #f3f2ff;
-  --color-on-surface: #191b24;
-  --color-on-surface-variant: #434655;
+  --color-surface: #F8FAFF;
+  --color-surface-container: #FFFFFF;
+  --color-on-surface: #0A122A;
+  --color-on-surface-variant: #5E6A8A;
   
-  --color-error: #ba1a1a;
-  --color-tertiary: #973b00;
+  --color-error: #FF4B4B;
   
-  --color-outline: #737686;
-  --color-outline-variant: #c3c5d7;
+  --color-outline: rgba(31, 72, 255, 0.1);
+  --color-outline-variant: rgba(31, 72, 255, 0.05);
+
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
 }
 
 @layer base {
   body {
-    @apply bg-surface text-on-surface font-sans;
-    -webkit-font-smoothing: antialiased;
+    @apply bg-surface text-on-surface font-sans antialiased;
+    background-image: radial-gradient(circle at top right, rgba(7, 225, 255, 0.03), transparent),
+                      radial-gradient(circle at bottom left, rgba(153, 172, 255, 0.03), transparent);
   }
 }
 
-.ios-blur {
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+.premium-shadow {
+  box-shadow: 0 10px 40px -10px rgba(31, 72, 255, 0.08);
 }
 
-.ios-card-shadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+.ios-blur {
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+}
+
+.grad-primary {
+  background: linear-gradient(135deg, #1F48FF 0%, #07E1FF 100%);
 }

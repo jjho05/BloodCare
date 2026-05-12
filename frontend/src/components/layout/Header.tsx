@@ -8,21 +8,25 @@ interface HeaderProps {
 
 const Header = ({ title, online, showNotification = true }: HeaderProps) => {
   return (
-    <header className="flex items-center justify-between px-5 h-16 w-full bg-[#121C2B] md:bg-white md:border-b md:border-outline-variant sticky top-0 z-40">
-      <div className="flex items-center gap-2">
-        <span className="text-[20px] font-bold text-white md:text-primary tracking-tight">{title}</span>
-        {online !== undefined &&
-          (online ? (
-            <Cloud className="w-4 h-4 text-success opacity-50" />
-          ) : (
-            <CloudOff className="w-4 h-4 text-error" />
-          ))}
+    <header className="glass-header ios-blur flex items-center justify-between px-6 h-18 w-full sticky top-0 z-40">
+      <div className="flex items-center gap-2.5">
+        <span className="text-2xl font-black text-primary tracking-tighter">{title}</span>
+        {online !== undefined && (
+          <div className={`w-2 h-2 rounded-full ${online ? 'bg-success animate-pulse' : 'bg-error'}`} />
+        )}
       </div>
-      {showNotification && (
-        <button className="w-10 h-10 rounded-full bg-white/10 md:bg-surface-container flex items-center justify-center text-white md:text-on-surface">
-          <Bell className="w-5 h-5" />
-        </button>
-      )}
+      <div className="flex items-center gap-3">
+        {online !== undefined && (
+          <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40">
+            {online ? 'Sincronizado' : 'Offline'}
+          </span>
+        )}
+        {showNotification && (
+          <button className="w-11 h-11 rounded-2xl bg-primary/5 flex items-center justify-center text-primary active:scale-90 transition-all">
+            <Bell className="w-5 h-5" />
+          </button>
+        )}
+      </div>
     </header>
   );
 };

@@ -60,26 +60,28 @@ const AppShell = ({
       )}
 
       {/* Main Container */}
-      <main className={`flex-1 flex justify-center items-center ${!isLogin ? 'md:ml-64' : ''} p-0 md:p-8 transition-all duration-500`}>
-        {/* Phone View Wrapper */}
+      <main className={`flex-1 flex flex-col ${!isLogin ? 'md:ml-64' : ''} transition-all duration-500`}>
+        {/* Full Screen Content Wrapper */}
         <div 
           className={`
-            w-full min-h-screen relative overflow-x-hidden bg-surface
-            ${!isLogin ? 'md:max-w-[390px] md:min-h-[844px] md:rounded-[3rem] md:shadow-2xl md:border-[8px] md:border-[#1e293b]' : 'max-w-md'}
-            mx-auto transition-all duration-700 ease-out
+            w-full min-h-screen relative bg-surface
+            ${!isLogin ? 'md:p-8 lg:p-12' : 'max-w-md mx-auto'}
+            transition-all duration-700 ease-out
           `}
         >
-          {/* Toast de notificaciones */}
-          <AnimatePresence>
-            {toast && <Toast message={toast.message} type={toast.type} />}
-          </AnimatePresence>
+          <div className={`${!isLogin ? 'max-w-7xl mx-auto' : ''}`}>
+            {/* Toast de notificaciones */}
+            <AnimatePresence>
+              {toast && <Toast message={toast.message} type={toast.type} />}
+            </AnimatePresence>
 
-          {/* Contenido de la pantalla activa */}
-          <AnimatePresence mode="wait">
-            <div key={screenKey} className="pb-32 md:pb-20">
-              {children}
-            </div>
-          </AnimatePresence>
+            {/* Contenido de la pantalla activa */}
+            <AnimatePresence mode="wait">
+              <div key={screenKey} className="pb-32 md:pb-0">
+                {children}
+              </div>
+            </AnimatePresence>
+          </div>
 
           {/* Barra de navegación inferior - Solo visible en Móvil */}
           {!isLogin && (
@@ -92,6 +94,7 @@ const AppShell = ({
               />
             </div>
           )}
+
 
           {/* Diálogo de confirmación de glucosa por voz */}
           <GlucoseConfirmDialog

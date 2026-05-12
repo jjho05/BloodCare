@@ -551,31 +551,66 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const audioContext = useRef<AudioContext | null>(null);
+  const silenceTimer = useRef<NodeJS.Timeout | null>(null);
+  const analyser = useRef<AnalyserNode | null>(null);
+  const animationFrame = useRef<number | null>(null);
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Detección de Silencio (Inspirado en Olvera Suite)
+      audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const source = audioContext.current.createMediaStreamSource(stream);
+      analyser.current = audioContext.current.createAnalyser();
+      analyser.current.fftSize = 256;
+      source.connect(analyser.current);
+
+      const bufferLength = analyser.current.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const checkSilence = () => {
+        if (!analyser.current) return;
+        analyser.current.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+
+        if (average > 12) { // Umbral de voz
+          if (silenceTimer.current) { clearTimeout(silenceTimer.current); silenceTimer.current = null; }
+        } else {
+          if (!silenceTimer.current) {
+            silenceTimer.current = setTimeout(() => stopRecording(), 1500); // 1.5s de silencio
+          }
+        }
+        animationFrame.current = requestAnimationFrame(checkSilence);
+      };
+
       const recorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = async () => {
+        if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
+        if (silenceTimer.current) clearTimeout(silenceTimer.current);
         setIsRecording(false);
         showToast('Procesando audio... 🧠', 'info');
         const blob = new Blob(chunks, { type: 'audio/wav' });
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        const resampleCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         const arrayBuffer = await blob.arrayBuffer();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        const audioBuffer = await resampleCtx.decodeAudioData(arrayBuffer);
         const float32Data = audioBuffer.getChannelData(0);
         worker.current?.postMessage({ type: 'transcribe', audio: float32Data });
-        await audioCtx.close();
+        await resampleCtx.close();
+        if (audioContext.current) { audioContext.current.close(); audioContext.current = null; }
       };
       recorder.start();
       mediaRecorder.current = recorder;
       setIsRecording(true);
+      checkSilence();
       showToast('Escuchando...', 'info');
     } catch (err) { showToast('Permiso denegado', 'error'); }
   };
 
-  const stopRecording = () => { mediaRecorder.current?.stop(); setIsRecording(false); };
+  const stopRecording = () => { if (mediaRecorder.current?.state === 'recording') mediaRecorder.current.stop(); };
 
   const addManualMeal = async (food: any) => {
     await db.meals.add({ ...food, user_id: 1, timestamp: new Date().toISOString(), synced: 0 });

@@ -333,12 +333,8 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
-      <header className="flex items-center justify-between px-5 h-14 w-full sticky top-0 z-40 bg-white/80 ios-blur">
-        <button className="w-10 h-10 flex items-center justify-center -ml-2">
-          <Settings className="w-6 h-6 text-on-surface" />
-        </button>
-        <span className="font-bold text-lg tracking-tight">BloodCare Bitácora</span>
-        {online ? <Cloud className="w-4 h-4 text-success opacity-50" /> : <CloudOff className="w-4 h-4 text-error" />}
+      <header className="px-6 h-16 flex items-center justify-center relative border-b border-zinc-100">
+        <h1 className="text-xl font-bold text-zinc-900">BloodCare Bitácora</h1>
       </header>
 
       <main className="p-5 space-y-8">
@@ -387,13 +383,20 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
                   <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-primary">
                     <Utensils className="w-7 h-7" />
                   </div>
-                  <div>
-                    <h4 className="font-bold text-on-surface text-lg leading-tight">{log.food_name}</h4>
-                    <p className="text-xs text-on-surface-variant mt-0.5">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {log.synced === 0 && '⌛'}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-on-surface text-lg leading-tight truncate">
+                      {log.nombre || log.food_name || "Comida Registrada"}
+                    </h4>
+                    <p className="text-xs text-on-surface-variant mt-0.5">
+                      {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {log.synced === 0 && '⌛'}
+                    </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-1.5">
-                  <span className="text-lg font-bold text-on-surface">{log.carbs_g}g</span>
+                <div className="flex flex-col items-end justify-center">
+                  <span className="text-xl font-black text-primary">
+                    {log.carbohidratos_g || log.carbs_g || 0}
+                    <span className="text-[10px] ml-0.5 opacity-50 uppercase">g</span>
+                  </span>
                 </div>
               </button>
             )) : (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -18,7 +18,9 @@ import {
   Activity,
   History,
   Lock,
-  Plus
+  Plus,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -33,15 +35,25 @@ import foodDictionary from './data/food_dictionary.json';
 
 const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.googleusercontent.com";
 
-interface PredictionData {
-  prediction: number[];
-  confidence_intervals: number[][];
-  risk_level: string;
-  narrative: string;
-  timestamp: string;
-}
-
 // ── COMPONENTES DE UI ──────────────────────────────────────
+
+const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'info' | 'error', onClose: () => void }) => (
+  <motion.div 
+    initial={{ y: -100, opacity: 0 }} 
+    animate={{ y: 20, opacity: 1 }} 
+    exit={{ y: -100, opacity: 0 }}
+    className="fixed top-0 left-0 right-0 z-[100] flex justify-center px-6"
+  >
+    <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl ios-blur border ${
+      type === 'success' ? 'bg-success/90 border-success/20 text-white' : 
+      type === 'error' ? 'bg-error/90 border-error/20 text-white' : 
+      'bg-primary/90 border-primary/20 text-white'
+    }`}>
+      {type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+      <span className="font-bold text-sm">{message}</span>
+    </div>
+  </motion.div>
+);
 
 const Header = ({ title }: { title: string }) => (
   <header className="flex items-center justify-between px-5 h-16 w-full sticky top-0 z-40 bg-white/80 ios-blur">
@@ -52,7 +64,6 @@ const Header = ({ title }: { title: string }) => (
       <span className="font-bold text-xl tracking-tight text-on-surface">{title}</span>
     </div>
     <div className="flex items-center gap-4">
-      <Bell className="w-6 h-6 text-on-surface-variant" />
       <div className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
         <UserIcon className="w-5 h-5 text-on-surface-variant" />
       </div>
@@ -88,18 +99,7 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: string, setScreen
   );
 };
 
-const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: (credentialResponse: any) => void }) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col items-center justify-center p-8 bg-surface text-on-surface relative overflow-hidden">
-    <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-    <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center shadow-2xl shadow-primary/20 mb-8 relative z-10"><Droplet className="text-white w-12 h-12" /></div>
-    <div className="text-center space-y-3 mb-12 relative z-10"><h1 className="text-5xl font-black tracking-tighter">BloodCare</h1><p className="text-on-surface-variant/80 font-medium max-w-[260px] mx-auto leading-tight text-lg">Tu compañero inteligente para la diabetes.</p></div>
-    <div className="w-full max-w-xs space-y-4 relative z-10 flex flex-col items-center">
-      <GoogleLogin onSuccess={onLoginSuccess} onError={() => console.log('Login Failed')} shape="pill" theme="filled_blue" text="continue_with" width="320" />
-    </div>
-  </motion.div>
-);
-
-const DashboardScreen = ({ data, currentVal, onSave }: { data: PredictionData | null, currentVal: number, onSave: (v: number) => void }) => {
+const DashboardScreen = ({ data, currentVal, onSave }: { data: any, currentVal: number, onSave: (v: number) => void }) => {
   const [val, setVal] = useState(currentVal);
   const max = data ? Math.round(Math.max(...data.prediction)) : 180;
   const min = data ? Math.round(Math.min(...data.prediction)) : 90;
@@ -108,20 +108,20 @@ const DashboardScreen = ({ data, currentVal, onSave }: { data: PredictionData | 
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
       <Header title="BloodCare" />
       <main className="px-5 pt-8 space-y-6">
-        <h1 className="text-3xl font-bold text-on-surface mb-6">¡Hola de nuevo!</h1>
+        <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
         <div className="bg-white ios-card-shadow p-8 rounded-[32px] border border-outline-variant/20 flex flex-col items-center text-center">
           <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">REGISTRO RÁPIDO</span>
           <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => setVal(v => v - 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary active:bg-primary/10">-</button>
+            <button onClick={() => setVal(v => v - 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary active:scale-90 transition-transform">-</button>
             <div className="flex items-baseline gap-1">
               <span className="text-6xl font-bold text-on-surface tracking-tight">{val}</span>
               <span className="text-lg font-medium text-on-surface-variant/50">mg/dL</span>
             </div>
-            <button onClick={() => setVal(v => v + 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary active:bg-primary/10">+</button>
+            <button onClick={() => setVal(v => v + 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary active:scale-90 transition-transform">+</button>
           </div>
           <button 
             onClick={() => onSave(val)}
-            className="w-full h-12 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
+            className="w-full h-12 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
           >
             Guardar Medición
           </button>
@@ -139,32 +139,7 @@ const DashboardScreen = ({ data, currentVal, onSave }: { data: PredictionData | 
   );
 };
 
-const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], data: PredictionData | null }) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
-    <header className="fixed top-0 z-40 w-full h-11 bg-white/80 ios-blur flex items-center px-4 border-b border-outline-variant/30">
-      <h1 className="text-[17px] font-semibold text-on-surface">Pronóstico BloodCare</h1>
-    </header>
-    <main className="pt-16 px-4 space-y-6">
-      <h2 className="text-3xl font-bold text-on-surface mb-3 tracking-tight">Predicción a 6 horas</h2>
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-outline-variant/20">
-        <div className="bg-[#1e293b] p-4 aspect-[16/9]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={historyRecords.length > 0 ? historyRecords : [{time: '00:00', value: 120}]}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} /><XAxis dataKey="time" stroke="#64748b" fontSize={10} /><Tooltip />
-              <Area type="monotone" dataKey="value" stroke="#3265ef" strokeWidth={3} fill="#3265ef" fillOpacity={0.1} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
-        <h3 className="font-bold mb-2">Narrativa Clínica 📋</h3>
-        <p className="text-sm text-on-surface-variant leading-relaxed">{data?.narrative || "Generando análisis..."}</p>
-      </div>
-    </main>
-  </motion.div>
-);
-
-const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, onAddManual }: { userMeals: any[], onImageUpload: (f: File) => void, onVoiceStart: () => void, onAddManual: (m: any) => void }) => {
+const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, onAddManual, aiStatus }: { userMeals: any[], onImageUpload: (f: File) => void, onVoiceStart: () => void, onAddManual: (m: any) => void, aiStatus: string }) => {
   const [query, setQuery] = useState('');
   const results = query.length > 2 ? foodDictionary.diccionario.filter(f => 
     f.nombre.toLowerCase().includes(query.toLowerCase()) || 
@@ -178,15 +153,15 @@ const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, onAddManual }:
       </header>
       <main className="p-5 space-y-8">
         <div>
-          <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" />Modo Offline Activo 🔒</div>
+          <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest">
+            <Lock className="w-3 h-3" /> {aiStatus} 🔒
+          </div>
           <h1 className="text-4xl font-bold text-on-surface mb-2">¿Qué comiste?</h1>
           <p className="text-lg text-on-surface-variant">Busca entre tus 150 platillos instantáneamente.</p>
         </div>
+
         <div className="relative z-50">
-          <div className="relative">
-            <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Escribe para buscar..." className="w-full h-14 bg-surface-container-low rounded-2xl px-5 border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface" />
-            <Search className="absolute right-4 top-4 text-on-surface-variant/40" />
-          </div>
+          <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Escribe para buscar..." className="w-full h-14 bg-surface-container-low rounded-2xl px-5 border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface" />
           {results.length > 0 && (
             <div className="absolute top-16 left-0 right-0 bg-white border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden z-50">
               {results.map((f, i) => (
@@ -198,6 +173,7 @@ const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, onAddManual }:
             </div>
           )}
         </div>
+
         <div className="space-y-4">
           <h3 className="font-bold text-on-surface-variant/60 text-xs uppercase tracking-widest">Registros Recientes</h3>
           {userMeals.length > 0 ? userMeals.map((log: any) => (
@@ -222,9 +198,34 @@ const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, onAddManual }:
 export default function App() {
   const [screen, setScreen] = useState('login');
   const [currentGlucose, setCurrentGlucose] = useState(123);
-  const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
+  const [predictionData, setPredictionData] = useState<any>(null);
   const [historyRecords, setHistoryRecords] = useState([]);
   const [userMeals, setUserMeals] = useState([]);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
+  const [aiStatus, setAiStatus] = useState('Modo Offline Activo');
+  
+  const worker = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    // Inicializar Worker de IA Local (Fase 2)
+    worker.current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+    worker.current.onmessage = (e) => {
+      const { type, message, text } = e.data;
+      if (type === 'status') setAiStatus(message);
+      if (type === 'result') {
+        setToast({ message: `IA Local entendió: ${text}`, type: 'success' });
+        // Aquí conectaríamos con el buscador local para guardar
+      }
+    };
+    worker.current.postMessage({ type: 'load' });
+
+    return () => worker.current?.terminate();
+  }, []);
+
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const fetchRecords = async () => {
     try {
@@ -245,39 +246,16 @@ export default function App() {
     try {
       await fetch('https://bloodcare-backend-jmv5.onrender.com/records/glucose', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, value: val, note: 'Registro manual' }) });
       fetchRecords();
-    } catch (error) { console.error(error); }
+      showToast('Medición guardada en Supabase');
+    } catch (error) { showToast('Error al guardar', 'error'); }
   };
 
   const addManualMeal = async (food: any) => {
     try {
       await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: food.nombre, carbs_g: food.carbohidratos_g }) });
       fetchMeals();
-    } catch (err) { console.error(err); }
-  };
-
-  const handleImageUpload = async (file: File) => {
-    try {
-      const formData = new FormData(); formData.append('file', file);
-      const res = await fetch('https://bloodcare-backend-jmv5.onrender.com/vision/analyze', { method: 'POST', body: formData });
-      const result = await res.json();
-      await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: result.dish, carbs_g: result.detected_carbs }) });
-      fetchMeals();
-    } catch (error) { console.error(error); }
-  };
-
-  const startVoiceRecognition = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert("No soportado");
-    const rec = new SpeechRecognition(); rec.lang = 'es-MX'; rec.start();
-    rec.onresult = async (e: any) => {
-      const query = e.results[0][0].transcript;
-      try {
-        const res = await fetch(`https://bloodcare-backend-jmv5.onrender.com/vision/analyze-text?query=${encodeURIComponent(query)}`, { method: 'POST' });
-        const result = await res.json();
-        await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: result.dish, carbs_g: result.detected_carbs }) });
-        fetchMeals();
-      } catch (err) { console.error(err); }
-    };
+      showToast(`${food.nombre} registrado`);
+    } catch (err) { showToast('Error al registrar comida', 'error'); }
   };
 
   useEffect(() => { if (screen !== 'login') { fetchRecords(); fetchMeals(); } }, [screen]);
@@ -285,12 +263,15 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="max-w-md mx-auto min-h-screen relative bg-surface">
+        <AnimatePresence>
+          {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           <div key={screen}>
-            {screen === 'login' && <LoginScreen onLoginSuccess={() => setScreen('inicio')} />}
+            {screen === 'login' && <LoginScreen onLoginSuccess={() => { setScreen('inicio'); showToast('¡Bienvenido a BloodCare!'); }} />}
             {screen === 'inicio' && <DashboardScreen data={predictionData} currentVal={currentGlucose} onSave={(v) => { setCurrentGlucose(v); saveGlucose(v); }} />}
-            {screen === 'prediccion' && <PredictionScreen historyRecords={historyRecords} data={predictionData} />}
-            {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onImageUpload={handleImageUpload} onVoiceStart={startVoiceRecognition} onAddManual={addManualMeal} />}
+            {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onImageUpload={() => {}} onVoiceStart={() => {}} onAddManual={addManualMeal} aiStatus={aiStatus} />}
             {screen === 'perfil' && <div className="p-10 text-center">Perfil de Usuario</div>}
           </div>
         </AnimatePresence>

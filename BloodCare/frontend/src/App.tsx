@@ -11,6 +11,7 @@ import {
   PlusCircle, 
   Info, 
   ChevronRight, 
+  ChevronLeft,
   Lock, 
   ShieldCheck, 
   CheckCircle,
@@ -70,7 +71,7 @@ const Navbar = ({ currentScreen, setScreen, onVoiceStart, isRecording }: { curre
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 ios-blur border-t border-outline-variant/30 px-6 pt-3 pb-8 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-outline-variant/20 px-6 pt-3 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
       <div className="flex items-end justify-between max-w-md mx-auto">
         {tabs.map((tab) => (
           <button
@@ -298,13 +299,39 @@ const DashboardScreen = ({ currentVal, online, historyRecords, userSettings, set
 };
 
 const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], data: PredictionData | null }) => {
+  const lastVal = historyRecords.length > 0 ? historyRecords[historyRecords.length - 1]?.value : 120;
+  const maxVal = historyRecords.length > 0 ? Math.max(...historyRecords.map((r:any) => r.value)) : 120;
+  const minVal = historyRecords.length > 0 ? Math.min(...historyRecords.map((r:any) => r.value)) : 120;
+  const trend = historyRecords.length > 1 
+    ? historyRecords[historyRecords.length - 1]?.value - historyRecords[0]?.value 
+    : 0;
+
+  const generateNarrative = () => {
+    if (data?.narrative) return data.narrative;
+    const lines: string[] = [];
+    if (lastVal >= 70 && lastVal <= 140) {
+      lines.push(`📊 Tu glucosa actual de ${lastVal} mg/dL se encuentra dentro del rango normal (70-140 mg/dL). ¡Buen trabajo!`);
+    } else if (lastVal > 140) {
+      lines.push(`⚠️ Tu glucosa actual de ${lastVal} mg/dL está por encima del rango recomendado. Considera consultar a tu médico.`);
+    } else {
+      lines.push(`⚠️ Tu glucosa actual de ${lastVal} mg/dL está baja. Considera comer algo con carbohidratos.`);
+    }
+    if (trend > 15) lines.push(`📈 Se observa una tendencia al alza de +${trend} mg/dL en el periodo registrado.`);
+    else if (trend < -15) lines.push(`📉 Se observa una tendencia a la baja de ${trend} mg/dL en el periodo registrado.`);
+    else lines.push(`➡️ Tu glucosa se ha mantenido estable durante este periodo.`);
+    lines.push(`🔎 Rango del día: mínimo ${minVal} mg/dL, máximo ${maxVal} mg/dL.`);
+    if (maxVal - minVal > 80) lines.push(`⚡ Se detectó una variabilidad alta (${maxVal - minVal} mg/dL). Esto puede indicar picos por alimentación o actividad física.`);
+    else lines.push(`✅ La variabilidad glucémica es baja (${maxVal - minVal} mg/dL), lo cual es positivo.`);
+    return lines.join('\n\n');
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-surface min-h-screen">
-      <header className="fixed top-0 z-40 w-full h-11 bg-white/80 ios-blur flex items-center px-4 border-b border-outline-variant/30">
-        <h1 className="text-[17px] font-semibold text-on-surface">Pronóstico BloodCare IA</h1>
+      <header className="sticky top-0 z-40 w-full h-16 bg-[#121C2B] flex items-center px-5">
+        <h1 className="text-[20px] font-bold text-white tracking-tight">Pronóstico BloodCare IA</h1>
       </header>
-      <main className="pt-16 px-4 space-y-6">
-        <h2 className="text-3xl font-bold text-on-surface mb-3 tracking-tight">Predicción a 6 horas</h2>
+      <main className="px-4 pt-6 space-y-5">
+        <h2 className="text-3xl font-bold text-on-surface tracking-tight">Predicción a 6 horas</h2>
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-outline-variant/20">
           <div className="bg-[#1e293b] p-4 aspect-[16/9]">
             <ResponsiveContainer width="100%" height="100%">
@@ -315,6 +342,35 @@ const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], dat
                 <Area type="monotone" dataKey="value" stroke="#3265ef" strokeWidth={3} fill="#3265ef" fillOpacity={0.1} />
               </AreaChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Explicación en Lenguaje Natural */}
+        <div className="bg-white rounded-[28px] p-6 shadow-sm border border-outline-variant/10 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Brain className="w-5 h-5 text-primary" />
+            <h3 className="text-[11px] font-mono font-bold text-on-surface-variant/60 uppercase tracking-widest">ANÁLISIS INTELIGENTE</h3>
+          </div>
+          <div className="space-y-3">
+            {generateNarrative().split('\n\n').map((paragraph, i) => (
+              <p key={i} className="text-[15px] text-on-surface-variant leading-relaxed">{paragraph}</p>
+            ))}
+          </div>
+        </div>
+
+        {/* Métricas rápidas */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-2xl p-4 text-center border border-outline-variant/10 shadow-sm">
+            <p className="text-[10px] font-mono font-bold text-on-surface-variant/50 uppercase mb-1">Actual</p>
+            <p className="text-2xl font-black text-on-surface">{lastVal}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 text-center border border-outline-variant/10 shadow-sm">
+            <p className="text-[10px] font-mono font-bold text-on-surface-variant/50 uppercase mb-1">Mínimo</p>
+            <p className="text-2xl font-black text-tertiary">{minVal}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-4 text-center border border-outline-variant/10 shadow-sm">
+            <p className="text-[10px] font-mono font-bold text-on-surface-variant/50 uppercase mb-1">Máximo</p>
+            <p className="text-2xl font-black text-error">{maxVal}</p>
           </div>
         </div>
       </main>
@@ -443,11 +499,14 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
   );
 };
 
-const GlucoseHistoryScreen = ({ records }: { records: any[] }) => {
+const GlucoseHistoryScreen = ({ records, onBack }: { records: any[], onBack: () => void }) => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-32 bg-surface min-h-screen">
-      <header className="px-6 h-16 flex items-center justify-center relative border-b border-zinc-100 bg-white">
-        <h1 className="text-xl font-bold text-zinc-900">Historial Glucemia</h1>
+      <header className="px-5 h-16 flex items-center gap-3 sticky top-0 z-40 bg-[#121C2B]">
+        <button onClick={onBack} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform">
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <h1 className="text-xl font-bold text-white">Historial Glucemia</h1>
       </header>
       <main className="p-6 space-y-4">
         {records.length > 0 ? [...records].reverse().map((rec, i) => (
@@ -486,9 +545,9 @@ const ProfileScreen = ({ userSettings, onUpdate, onLogout }: { userSettings: Use
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
-      <header className="px-5 h-16 w-full sticky top-0 z-40 bg-[#121C2B] flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Configuración</h1>
-        <button onClick={() => onUpdate({ ...userSettings, name, target_min: min, target_max: max })} className="text-primary-container font-bold bg-white/10 px-4 py-1 rounded-full text-sm">Guardar</button>
+      <header className="flex items-center justify-between px-5 h-16 w-full bg-[#121C2B] sticky top-0 z-40">
+        <span className="text-[20px] font-bold text-white tracking-tight">Configuración</span>
+        <button onClick={() => onUpdate({ ...userSettings, name, target_min: min, target_max: max })} className="text-white font-bold bg-primary px-5 py-1.5 rounded-full text-sm shadow-lg shadow-primary/20 active:scale-95 transition-transform">Guardar</button>
       </header>
       <main className="p-6 space-y-8">
         <div className="flex flex-col items-center gap-4 py-6">
@@ -762,7 +821,7 @@ export default function App() {
       );
       case 'prediccion': return <PredictionScreen historyRecords={chartData} data={predictionData} />;
       case 'alimentos': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
-      case 'glucemia': return <GlucoseHistoryScreen records={historyRecords} />;
+      case 'glucemia': return <GlucoseHistoryScreen records={historyRecords} onBack={() => setScreen('inicio')} />;
       case 'perfil': return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;
       default: return <DashboardScreen />;
     }

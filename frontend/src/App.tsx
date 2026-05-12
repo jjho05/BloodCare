@@ -43,7 +43,7 @@ import { db, type UserSettings } from './db';
 const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.googleusercontent.com";
 
 // --- Types ---
-type Screen = 'login' | 'inicio' | 'prediccion' | 'voz' | 'perfil';
+type Screen = 'login' | 'inicio' | 'prediccion' | 'voz' | 'perfil' | 'glucemia' | 'alimentos';
 interface PredictionData {
   prediction: number[];
   narrative: string;
@@ -65,6 +65,7 @@ const Navbar = ({ currentScreen, setScreen, onVoiceStart, isRecording }: { curre
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'prediccion', label: 'IA', icon: TrendingUp },
     { id: 'voz', label: 'Voz', icon: Mic },
+    { id: 'alimentos', label: 'Comida', icon: Utensils },
     { id: 'perfil', label: 'Perfil', icon: User },
   ];
 
@@ -225,9 +226,9 @@ const DashboardScreen = ({ currentVal, online, historyRecords, userSettings, set
         <div>
           <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
           <div className="grid grid-cols-3 gap-3 mb-6">
-            <button onClick={() => setScreen('voz')} className="bg-white text-zinc-500 h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-zinc-100 shadow-sm">
+            <button onClick={() => setScreen('glucemia')} className="bg-white text-zinc-500 h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-zinc-100 shadow-sm">
               <History className="w-5 h-5" />
-              <span className="text-[10px] uppercase tracking-tighter">Historial</span>
+              <span className="text-[10px] uppercase tracking-tighter">Glucemia</span>
             </button>
             <button 
               onClick={onVoiceStart} 
@@ -413,6 +414,42 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
           {isRecording ? <StopCircle className="w-10 h-10 text-white" /> : <Mic className="w-10 h-10 text-white" />}
         </button>
       </div>
+    </motion.div>
+  );
+};
+
+const GlucoseHistoryScreen = ({ records }: { records: any[] }) => {
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-32 bg-surface min-h-screen">
+      <header className="px-6 h-16 flex items-center justify-center relative border-b border-zinc-100 bg-white">
+        <h1 className="text-xl font-bold text-zinc-900">Historial Glucemia</h1>
+      </header>
+      <main className="p-6 space-y-4">
+        {records.length > 0 ? [...records].reverse().map((rec, i) => (
+          <div key={i} className="bg-white p-5 rounded-3xl border border-zinc-100 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-error/10 rounded-full flex items-center justify-center text-error">
+                <Droplet className="w-5 h-5 fill-current" />
+              </div>
+              <div>
+                <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest">Lectura</p>
+                <p className="text-sm font-medium text-zinc-500">
+                  {new Date(rec.timestamp).toLocaleDateString()} - {new Date(rec.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-black text-zinc-900">{rec.value}</span>
+              <span className="text-[10px] ml-1 text-zinc-300 font-bold uppercase">mg/dL</span>
+            </div>
+          </div>
+        )) : (
+          <div className="text-center py-20 opacity-20">
+            <Droplet className="w-20 h-20 mx-auto mb-4" />
+            <p className="font-bold">Sin lecturas registradas</p>
+          </div>
+        )}
+      </main>
     </motion.div>
   );
 };
@@ -688,7 +725,8 @@ export default function App() {
         />
       );
       case 'prediccion': return <PredictionScreen historyRecords={chartData} data={predictionData} />;
-      case 'voz': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
+      case 'alimentos': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
+      case 'glucemia': return <GlucoseHistoryScreen records={historyRecords} />;
       case 'perfil': return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;
       default: return <DashboardScreen />;
     }

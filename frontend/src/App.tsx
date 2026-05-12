@@ -190,34 +190,67 @@ const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], dat
   );
 };
 
-const VoiceLogScreen = () => {
-  const foodLogs = [
-    { id: 1, name: 'Tacos de frijol', kcal: 380, time: '14:15', category: 'Almuerzo', impact: 'Bajo', amount: '35g', icon: Utensils },
-    { id: 2, name: 'Huevo con nopales', kcal: 210, time: '08:30', category: 'Desayuno', impact: 'Bajo', amount: '12g', icon: Egg },
-    { id: 3, name: 'Pan dulce', kcal: 320, time: '18:20', category: 'Merienda', impact: 'Alto', amount: '45g', icon: Croissant },
-  ];
+const VoiceLogScreen = ({ userMeals, onImageUpload }: { userMeals: any[], onImageUpload: (file: File) => void }) => {
+  const [isUploading, setIsUploading] = useState(false);
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
       <header className="flex items-center justify-between px-5 h-14 w-full sticky top-0 z-40 bg-white/80 ios-blur">
-        <Settings className="w-6 h-6 text-on-surface" /><span className="font-bold text-lg tracking-tight">BloodCare</span><div className="w-10 h-10"></div>
+        <Settings className="w-6 h-6 text-on-surface" /><span className="font-bold text-lg tracking-tight">BloodCare Bitácora</span><div className="w-10 h-10"></div>
       </header>
       <main className="p-5 space-y-8">
         <div>
-          <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" />Procesado en tu celular 🔒</div>
+          <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" />Procesado por Gemini 3 🔒</div>
           <h1 className="text-4xl font-bold text-on-surface mb-2">¿Qué comiste?</h1>
-          <p className="text-lg text-on-surface-variant">Dilo en voz alta. Privacidad total.</p>
+          <p className="text-lg text-on-surface-variant">Sube una foto o descríbelo. La IA hará el resto.</p>
         </div>
+
+        {/* Input de búsqueda / descripción */}
+        <div className="relative">
+          <input 
+            type="text" 
+            placeholder="Ej: 2 tacos de pastor y una coca..."
+            className="w-full h-14 bg-surface-container-low rounded-2xl px-5 border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface"
+          />
+          <button className="absolute right-2 top-2 w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg">
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+
         <div className="space-y-4">
-          {foodLogs.map((log) => (
+          <h3 className="font-bold text-on-surface-variant/60 text-xs uppercase tracking-widest">Registros Recientes</h3>
+          {userMeals.length > 0 ? userMeals.map((log: any) => (
             <div key={log.id} className="w-full flex items-center justify-between p-4 bg-surface-container-low rounded-[20px] border border-outline-variant/10">
-              <div className="flex items-center gap-4"><div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary"><log.icon className="w-7 h-7" /></div>
-              <div><h4 className="font-bold text-lg">{log.name}</h4><p className="text-xs opacity-60">{log.kcal} kcal • {log.time}</p></div></div>
-              <span className="text-lg font-bold">{log.amount}</span>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm">
+                  <Utensils className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg">{log.food_name}</h4>
+                  <p className="text-xs opacity-60">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                </div>
+              </div>
+              <span className="text-lg font-bold text-primary">{log.carbs_g}g</span>
             </div>
-          ))}
+          )) : (
+            <div className="text-center py-10 opacity-40">
+              <History className="w-12 h-12 mx-auto mb-2" />
+              <p className="text-sm">No hay comidas hoy</p>
+            </div>
+          )}
         </div>
       </main>
-      <div className="fixed bottom-24 right-6 z-50"><button className="bg-primary text-white rounded-full w-20 h-20 flex items-center justify-center shadow-2xl"><Mic className="w-10 h-10" /></button></div>
+
+      {/* Botones de acción flotantes */}
+      <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-3">
+        <label className="bg-secondary text-white rounded-full w-14 h-14 flex items-center justify-center shadow-xl cursor-pointer active:scale-95 transition-all">
+          <Search className="w-6 h-6" />
+          <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files && onImageUpload(e.target.files[0])} />
+        </label>
+        <button className="bg-primary text-white rounded-full w-20 h-20 flex items-center justify-center shadow-2xl active:scale-95 transition-all">
+          <Mic className="w-10 h-10" />
+        </button>
+      </div>
     </motion.div>
   );
 };
@@ -231,10 +264,49 @@ export default function App() {
 
   // Lógica de cableado con la API
   const [historyRecords, setHistoryRecords] = useState([]);
+  const [userMeals, setUserMeals] = useState([]);
 
   useEffect(() => {
-    if (screen !== 'login') fetchRecords();
+    if (screen !== 'login') {
+      fetchRecords();
+      fetchMeals();
+    }
   }, [screen]);
+
+  const fetchMeals = async () => {
+    try {
+      const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal?user_id=1');
+      const data = await response.json();
+      setUserMeals(data);
+    } catch (error) { console.error('Error cargando comidas:', error); }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/vision/analyze', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      
+      // Guardar el resultado en la DB
+      await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          user_id: 1, 
+          food_name: result.dish, 
+          carbs_g: result.detected_carbs 
+        })
+      });
+      
+      fetchMeals(); // Actualizar lista
+      alert(`IA detectó: ${result.dish} (${result.detected_carbs}g carbs)`);
+    } catch (error) { console.error('Error en visión AI:', error); }
+  };
 
   const fetchRecords = async () => {
     try {
@@ -279,7 +351,7 @@ export default function App() {
       case 'login': return <LoginScreen onLoginSuccess={() => setScreen('inicio')} />;
       case 'inicio': return <DashboardScreen data={predictionData} currentVal={currentGlucose} />;
       case 'prediccion': return <PredictionScreen historyRecords={historyRecords} data={predictionData} />;
-      case 'voz': return <VoiceLogScreen />;
+      case 'voz': return <VoiceLogScreen userMeals={userMeals} onImageUpload={handleImageUpload} />;
       case 'perfil': return <div className="p-10 text-center">Perfil de Usuario</div>;
       default: return <DashboardScreen data={predictionData} currentVal={currentGlucose} />;
     }

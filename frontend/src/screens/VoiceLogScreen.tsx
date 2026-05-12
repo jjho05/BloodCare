@@ -86,7 +86,7 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, onT
                     <p className="text-xs text-on-surface-variant font-bold opacity-40 uppercase tracking-widest">{f.porcion}</p>
                   </div>
                   <div className="flex items-center gap-3 text-primary">
-                    <span className="text-lg font-black">{f.carbohidratos_g}g</span>
+                    <span className="text-lg font-black">{f.calorias_kcal} <span className="text-[8px] uppercase">kcal</span></span>
                     <Plus className="w-5 h-5" />
                   </div>
                 </button>
@@ -129,8 +129,8 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, onT
                   </div>
                   <div className="flex flex-col items-end justify-center pr-2">
                     <span className="text-2xl font-black text-primary">
-                      {log.carbohidratos_g || log.carbs_g || 0}
-                      <span className="text-xs ml-1 font-bold opacity-30">g</span>
+                      {log.calorias_kcal || log.kcal || 0}
+                      <span className="text-[10px] ml-1 font-bold opacity-30">kcal</span>
                     </span>
                   </div>
                 </button>

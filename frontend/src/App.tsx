@@ -68,7 +68,7 @@ export default function App() {
           addManualMeal(learnedFood);
           // Aprender para la próxima
           db.customFoods.add(food); 
-          showToast(`¡Aprendido! ${food.nombre} (~${food.carbohidratos_g}g carbs) 🧠✅`);
+          showToast(`¡Aprendido! ${food.nombre} (~${food.calorias_kcal} kcal) 🧠✅`);
           return;
         }
 

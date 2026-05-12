@@ -132,7 +132,7 @@ async function analyzeText(text: string) {
         messages: [
           { 
             role: "system", 
-            content: `Eres BloodCare AI. Tu tarea es mapear el texto del usuario a un alimento de este diccionario:\n${dictionaryContext}\n\nSi el alimento NO está en el diccionario, usa tu conocimiento general para identificarlo y estimar sus carbohidratos (por 1 porción estándar).\n\nResponde estrictamente en formato JSON: {"match": "Nombre Exacto o Nuevo", "quantity": numero, "is_food": boolean, "is_new": boolean, "carbs_est": numero, "portion_est": "string"}` 
+            content: `Eres BloodCare AI. Tu tarea es mapear el texto del usuario a un alimento de este diccionario:\n${dictionaryContext}\n\nSi el alimento NO está en el diccionario, usa tu conocimiento general para identificarlo y estimar sus CALORÍAS (kcal) totales (por 1 porción estándar).\n\nResponde estrictamente en formato JSON: {"match": "Nombre Exacto o Nuevo", "quantity": numero, "is_food": boolean, "is_new": boolean, "kcal_est": numero, "portion_est": "string"}` 
           },
           { role: "user", content: text }
         ],
@@ -160,7 +160,7 @@ async function analyzeText(text: string) {
           dataType: 'new_food',
           food: {
             nombre: aiResult.match,
-            carbohidratos_g: aiResult.carbs_est || 20,
+            calorias_kcal: aiResult.kcal_est || 250,
             porcion: aiResult.portion_est || '1 porción',
             alias: [aiResult.match.toLowerCase()]
           },

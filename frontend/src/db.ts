@@ -13,7 +13,7 @@ export interface MealOffline {
   id?: number;
   user_id: number;
   food_name: string;
-  carbs_g: number;
+  kcal: number;
   timestamp: string;
   synced: number;
 }
@@ -29,7 +29,7 @@ export interface UserSettings {
 export interface CustomFood {
   id?: number;
   nombre: string;
-  carbohidratos_g: number;
+  calorias_kcal: number;
   porcion: string;
   alias: string[];
 }

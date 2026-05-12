@@ -74,10 +74,13 @@ self.onmessage = async (e) => {
     try {
       self.postMessage({ type: 'status', message: 'Analizando audio... 🧠' });
       if (!isReady) await init();
-      
-      const output = await transcriber(audio, { 
+
+      const audioInput = audio.array ?? audio;
+
+      const output = await transcriber(audioInput, { 
         language: 'spanish', 
         task: 'transcribe',
+        sampling_rate: 16000,
         chunk_length_s: 30,
         stride_length_s: 5,
         return_timestamps: false

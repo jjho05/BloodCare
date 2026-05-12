@@ -480,8 +480,12 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
 
-  const worker = useRef<Worker | null>(null);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
+  const audioContext = useRef<AudioContext | null>(null);
+  const silenceTimer = useRef<NodeJS.Timeout | null>(null);
+  const analyser = useRef<AnalyserNode | null>(null);
+  const animationFrame = useRef<number | null>(null);
+  const worker = useRef<Worker | null>(null);
 
   useEffect(() => {
     const handleOnline = () => { setOnline(true); syncAll(); };
@@ -551,51 +555,119 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const audioContext = useRef<AudioContext | null>(null);
-  const silenceTimer = useRef<NodeJS.Timeout | null>(null);
-  const analyser = useRef<AnalyserNode | null>(null);
-  const animationFrame = useRef<number | null>(null);
-
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
-      recorder.ondataavailable = (e) => chunks.push(e.data);
+      const mimeType = recorder.mimeType;
+
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      
       recorder.onstop = async () => {
         setIsRecording(false);
-        showToast('Analizando audio... 🧠', 'info');
-        const blob = new Blob(chunks);
-        const arrayBuffer = await blob.arrayBuffer();
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-        const rawData = audioBuffer.getChannelData(0);
-        
-        // RESAMPLEO MANUAL (Interpolación Lineal Pura)
-        const targetSampleRate = 16000;
-        const resampledLength = Math.floor(audioBuffer.duration * targetSampleRate);
-        const resampledData = new Float32Array(resampledLength);
-        const ratio = audioBuffer.sampleRate / targetSampleRate;
-        
-        for (let i = 0; i < resampledLength; i++) {
-          const position = i * ratio;
-          const index = Math.floor(position);
-          const fraction = position - index;
-          if (index + 1 < rawData.length) {
-            resampledData[i] = rawData[index] * (1 - fraction) + rawData[index + 1] * fraction;
-          } else {
-            resampledData[i] = rawData[index];
-          }
+        stream.getTracks().forEach(track => track.stop());
+
+        if (chunks.length === 0) {
+          showToast('No se captó audio', 'error');
+          return;
         }
-        
-        worker.current?.postMessage({ type: 'transcribe', audio: resampledData });
-        await audioCtx.close();
+
+        showToast('Analizando... 🧠', 'info');
+        const blob = new Blob(chunks, { type: mimeType });
+        const arrayBuffer = await blob.arrayBuffer();
+
+        try {
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+          // Mezclar a mono
+          let rawData: Float32Array;
+          if (audioBuffer.numberOfChannels > 1) {
+            rawData = new Float32Array(audioBuffer.length);
+            for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+              const channelData = audioBuffer.getChannelData(ch);
+              for (let i = 0; i < rawData.length; i++) {
+                rawData[i] += channelData[i] / audioBuffer.numberOfChannels;
+              }
+            }
+          } else {
+            rawData = audioBuffer.getChannelData(0);
+          }
+
+          // Resampleo a 16kHz
+          const targetSampleRate = 16000;
+          const resampledLength = Math.floor(audioBuffer.duration * targetSampleRate);
+          const resampledData = new Float32Array(resampledLength);
+          const ratio = audioBuffer.sampleRate / targetSampleRate;
+          for (let i = 0; i < resampledLength; i++) {
+            const position = i * ratio;
+            const index = Math.floor(position);
+            const fraction = position - index;
+            resampledData[i] = index + 1 < rawData.length
+              ? rawData[index] * (1 - fraction) + rawData[index + 1] * fraction
+              : rawData[index];
+          }
+
+          // Normalizar volumen
+          const maxVal = Math.max(...Array.from(resampledData).map(Math.abs));
+          if (maxVal > 0.001) {
+            for (let i = 0; i < resampledData.length; i++) resampledData[i] /= maxVal;
+          } else {
+            showToast('Audio muy bajo, habla más fuerte 🎙️', 'error');
+            await audioCtx.close();
+            return;
+          }
+
+          worker.current?.postMessage({
+            type: 'transcribe',
+            audio: { array: resampledData, sampling_rate: 16000 }
+          });
+
+          await audioCtx.close();
+        } catch (err) {
+          showToast('Error al procesar audio', 'error');
+          console.error(err);
+        }
       };
-      
-      recorder.start();
+
+      recorder.start(250);
       mediaRecorder.current = recorder;
       setIsRecording(true);
       showToast('Escuchando...', 'info');
+
+      // Detección de silencio (Inspirado en Olvera Suite / Master Code)
+      const audioCtxLive = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const sourceLive = audioCtxLive.createMediaStreamSource(stream);
+      const analyserNode = audioCtxLive.createAnalyser();
+      analyserNode.fftSize = 512;
+      sourceLive.connect(analyserNode);
+
+      const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+      let silenceStart: number | null = null;
+
+      const checkSilence = () => {
+        if (mediaRecorder.current?.state !== 'recording') {
+          audioCtxLive.close();
+          return;
+        }
+        analyserNode.getByteFrequencyData(dataArray);
+        const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+
+        if (volume < 8) { // umbral de silencio
+          if (!silenceStart) silenceStart = Date.now();
+          else if (Date.now() - silenceStart > 1500) {
+            audioCtxLive.close();
+            stopRecording();
+            return;
+          }
+        } else {
+          silenceStart = null;
+        }
+        animationFrame.current = requestAnimationFrame(checkSilence);
+      };
+      animationFrame.current = requestAnimationFrame(checkSilence);
+
     } catch (err) { showToast('Error de micro', 'error'); }
   };
 

@@ -6,6 +6,7 @@ env.useBrowserCache = true;
 let transcriber: any = null;
 let extractor: any = null;
 let dictionaryVectors: any[] = [];
+let isReady = false;
 
 function cosineSimilarity(a: number[], b: number[]) {
   let dotProduct = 0, normA = 0, normB = 0;
@@ -23,10 +24,9 @@ const numberMap: Record<string, number> = {
 };
 
 function extractQuantity(text: string): number {
-  const words = text.toLowerCase().split(' ');
   const numMatch = text.match(/\d+/);
   if (numMatch) return parseInt(numMatch[0]);
-  for (let word of words) {
+  for (const word of text.toLowerCase().split(' ')) {
     if (numberMap[word]) return numberMap[word];
   }
   return 1;
@@ -35,13 +35,14 @@ function extractQuantity(text: string): number {
 const init = async () => {
   try {
     if (!transcriber) {
-      self.postMessage({ type: 'status', message: 'Cargando Whisper...' });
-      transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny');
+      self.postMessage({ type: 'status', message: 'Cargando Whisper Small (Español)...' });
+      transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small');
     }
     if (!extractor) {
-      self.postMessage({ type: 'status', message: 'Cargando Buscador Semántico...' });
-      extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      self.postMessage({ type: 'status', message: 'Cargando Buscador Multilingüe...' });
+      extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
     }
+    isReady = true;
     self.postMessage({ type: 'status', message: 'IA Local Lista ✅' });
   } catch (err) {
     self.postMessage({ type: 'status', message: 'Error cargando IA: ' + err });
@@ -49,15 +50,19 @@ const init = async () => {
 };
 
 self.onmessage = async (e) => {
-  const { type, audio, text, dictionary } = e.data;
+  const { type, audio, dictionary } = e.data;
 
   if (type === 'load') await init();
 
   if (type === 'index' && dictionary) {
+    while (!isReady) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
     try {
+      self.postMessage({ type: 'status', message: 'Indexando diccionario...' });
       dictionaryVectors = await Promise.all(dictionary.map(async (item: any) => {
         const output = await extractor(item.nombre, { pooling: 'mean', normalize: true });
-        return { id: item.nombre, vector: Array.from(output.data) };
+        return { id: item.nombre, vector: Array.from(output.data) as number[] };
       }));
       self.postMessage({ type: 'status', message: 'Diccionario Listo 📖' });
     } catch (err) {
@@ -68,15 +73,20 @@ self.onmessage = async (e) => {
   if (type === 'transcribe' && audio) {
     try {
       self.postMessage({ type: 'status', message: 'Analizando audio... 🧠' });
-      if (!transcriber) await init();
+      if (!isReady) await init();
       
       const output = await transcriber(audio, { 
-        language: 'es', 
-        task: 'transcribe'
+        language: 'spanish', 
+        task: 'transcribe',
+        chunk_length_s: 30,
+        stride_length_s: 5,
+        return_timestamps: false
       });
       
-      const transcript = output.text.trim();
-      if (!transcript) {
+      const transcript = (output.text ?? '').trim().toLowerCase();
+      console.log('[Worker] Transcripción:', transcript);
+
+      if (!transcript || transcript.length < 2) {
         self.postMessage({ type: 'result', text: '', match: null, quantity: 1 });
         return;
       }
@@ -89,14 +99,16 @@ self.onmessage = async (e) => {
         
         const scores = dictionaryVectors.map(dv => ({
           id: dv.id,
-          score: cosineSimilarity(queryVector, dv.vector as number[])
+          score: cosineSimilarity(queryVector, dv.vector)
         })).sort((a, b) => b.score - a.score);
 
+        console.log('[Worker] Top 3 matches:', scores.slice(0, 3));
         self.postMessage({ type: 'result', text: transcript, match: scores[0], quantity });
       } else {
-        self.postMessage({ type: 'result', text: transcript, quantity });
+        self.postMessage({ type: 'result', text: transcript, match: null, quantity });
       }
     } catch (err) {
+      console.error('[Worker] Error en transcripción:', err);
       self.postMessage({ type: 'status', message: 'Error en IA: ' + err });
     }
   }

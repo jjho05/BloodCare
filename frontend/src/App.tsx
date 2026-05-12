@@ -494,7 +494,7 @@ export default function App() {
       const { type, message, match, quantity, text } = e.data;
       if (type === 'status') setAiStatus(message);
       if (type === 'result') {
-        if (match && match.score > 0.5) {
+        if (match && match.score > 0.35) {
           const foodMatch = foodDictionary.diccionario.find(f => f.nombre === match.id);
           if (foodMatch) {
             const qty = quantity || 1;

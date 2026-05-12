@@ -60,7 +60,7 @@ const Toast = ({ message, type }: { message: string, type: 'success' | 'info' | 
   </motion.div>
 );
 
-const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen: (s: Screen) => void }) => {
+const Navbar = ({ currentScreen, setScreen, onVoiceStart, isRecording }: { currentScreen: Screen, setScreen: (s: Screen) => void, onVoiceStart?: () => void, isRecording?: boolean }) => {
   const tabs = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'prediccion', label: 'IA', icon: TrendingUp },
@@ -74,7 +74,10 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setScreen(tab.id as Screen)}
+            onClick={() => {
+              if (tab.id === 'voz') onVoiceStart?.();
+              else setScreen(tab.id as Screen);
+            }}
             className={`flex flex-col items-center gap-1 transition-colors ${
               currentScreen === tab.id ? 'text-primary' : 'text-on-surface-variant/60'
             }`}
@@ -82,7 +85,7 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen
             {tab.id === 'voz' ? (
               <div className="relative -top-4">
                 <div className={`rounded-full w-14 h-14 flex items-center justify-center shadow-xl shadow-primary/30 transition-transform active:scale-90 ${
-                  currentScreen === 'voz' ? 'bg-primary' : 'bg-primary/90'
+                  isRecording ? 'bg-error animate-pulse' : 'bg-primary'
                 }`}>
                   <Mic className="text-white w-7 h-7" />
                 </div>
@@ -223,15 +226,15 @@ const DashboardScreen = ({ currentVal, online, historyRecords, userSettings, set
           <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
           <div className="grid grid-cols-3 gap-3 mb-6">
             <button onClick={() => setScreen('voz')} className="bg-white text-zinc-500 h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-zinc-100 shadow-sm">
-              <Utensils className="w-5 h-5" />
-              <span className="text-[10px] uppercase tracking-tighter">Comida</span>
+              <History className="w-5 h-5" />
+              <span className="text-[10px] uppercase tracking-tighter">Historial</span>
             </button>
             <button 
               onClick={onVoiceStart} 
               className={`h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-lg ${isRecording ? 'bg-error animate-pulse text-white shadow-error/20' : 'bg-primary text-white shadow-primary/20'}`}
             >
               <Mic className="w-6 h-6" />
-              <span className="text-[10px] uppercase tracking-tighter">{isRecording ? '...' : 'Voz'}</span>
+              <span className="text-[10px] uppercase tracking-tighter">{isRecording ? '...' : 'Dictar'}</span>
             </button>
             <button onClick={onManualGlucose} className="bg-white text-error h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-error/10 shadow-sm">
               <Droplet className="w-5 h-5 fill-current" />
@@ -700,7 +703,7 @@ export default function App() {
             {renderScreen()}
           </div>
         </AnimatePresence>
-        {screen !== 'login' && <Navbar currentScreen={screen} setScreen={setScreen} />}
+        {screen !== 'login' && <Navbar currentScreen={screen} setScreen={setScreen} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} />}
         
         {/* Diálogo de Confirmación de Glucosa */}
         <AnimatePresence>

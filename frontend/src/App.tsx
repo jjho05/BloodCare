@@ -112,14 +112,20 @@ export default function App() {
   useEffect(() => {
     worker.current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     worker.current.onmessage = (e) => {
-      const { type, message, text } = e.data;
+      const { type, message, text, match } = e.data;
       if (type === 'status') setAiStatus(message);
       if (type === 'result') {
-        showToast(`Escuchado: ${text}`, 'success');
-        // Aquí dispararemos la búsqueda en el diccionario local
+        const foodMatch = match && match.score > 0.6 ? foodDictionary.diccionario.find(f => f.nombre === match.id) : null;
+        if (foodMatch) {
+          addManualMeal(foodMatch);
+          showToast(`IA detectó: ${foodMatch.nombre} (${foodMatch.carbohidratos_g}g)`, 'success');
+        } else {
+          showToast(`Transcrito: "${text}"`, 'info');
+        }
       }
     };
     worker.current.postMessage({ type: 'load' });
+    worker.current.postMessage({ type: 'index', dictionary: foodDictionary.diccionario });
     return () => worker.current?.terminate();
   }, []);
 
@@ -133,7 +139,6 @@ export default function App() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
-
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = async () => {
         const blob = new Blob(chunks, { type: 'audio/wav' });
@@ -144,18 +149,14 @@ export default function App() {
         worker.current?.postMessage({ type: 'transcribe', audio: float32Data });
         audioCtx.close();
       };
-
       recorder.start();
       mediaRecorder.current = recorder;
       setIsRecording(true);
       showToast('Escuchando...', 'info');
-    } catch (err) { showToast('Permiso de micro denegado', 'error'); }
+    } catch (err) { showToast('Permiso denegado', 'error'); }
   };
 
-  const stopRecording = () => {
-    mediaRecorder.current?.stop();
-    setIsRecording(false);
-  };
+  const stopRecording = () => { mediaRecorder.current?.stop(); setIsRecording(false); };
 
   const addManualMeal = async (food: any) => {
     try {
@@ -166,6 +167,15 @@ export default function App() {
     } catch (err) { showToast('Error al conectar', 'error'); }
   };
 
+  useEffect(() => { if (screen !== 'login') { fetchMeals(); } }, [screen]);
+
+  const fetchMeals = async () => {
+    try {
+      const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal?user_id=1');
+      setUserMeals(await response.json());
+    } catch (error) { console.error(error); }
+  };
+
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="max-w-md mx-auto min-h-screen relative bg-surface">
@@ -173,7 +183,7 @@ export default function App() {
         <AnimatePresence mode="wait">
           <div key={screen}>
             {screen === 'login' && <LoginScreen onLoginSuccess={() => setScreen('inicio')} />}
-            {screen === 'inicio' && <DashboardScreen data={null} currentVal={currentGlucose} onSave={(v) => setCurrentGlucose(v)} />}
+            {screen === 'inicio' && <DashboardScreen data={null} currentVal={currentGlucose} onSave={(v) => { setCurrentGlucose(v); showToast('Glucosa guardada'); }} />}
             {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} />}
             {screen === 'perfil' && <div className="p-10 text-center">Perfil de Usuario</div>}
           </div>

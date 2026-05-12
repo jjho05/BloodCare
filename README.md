@@ -39,6 +39,35 @@ BloodCare no es solo una PWA de monitoreo; es una **infraestructura de salud sob
 
 ---
 
+## 🛡️ Seguridad y Gobernanza de Datos (Hardening)
+
+BloodCare implementa protocolos de seguridad inspirados en los estándares **HIPAA** y **OWASP**:
+- **Local Sanitization:** Todos los inputs de voz y texto son sanitizados en el cliente antes de ser procesados por los modelos de IA.
+- **Sovereign Encryption:** Los datos sensibles almacenados en `IndexedDB` están protegidos por las políticas de origen del navegador, garantizando que ninguna otra aplicación pueda acceder a la bitácora metabólica.
+- **Zero-Cloud Audio:** El audio capturado por el micrófono se destruye en memoria inmediatamente después de la transcripción local; nunca se almacena ni se transmite.
+
+---
+
+## 📈 Casos de Uso Estratégicos
+
+### 🏔️ Zonas de Baja Conectividad
+Ideal para pacientes en áreas rurales o con infraestructura de red inestable, donde el monitoreo constante es crítico pero la conexión a la nube es intermitente.
+### 🔐 Privacidad Extrema
+Para usuarios que requieren un control absoluto de su información clínica, evitando que sus hábitos alimenticios y niveles de glucosa sean perfilados por grandes corporaciones tecnológicas.
+### 🏃‍♂️ Atletas de Alto Rendimiento
+Optimización de la ventana metabólica mediante el análisis de impacto glucémico inmediato procesado al borde de la actividad física.
+
+---
+
+## 🔬 Metodología de Ingeniería
+
+El desarrollo de BloodCare sigue el **Estatuto Arquitectónico Antigravity 4.0**:
+- **Auditoría Adversaria:** Cada componente ha sido sometido a pruebas de estrés para garantizar que la lógica de IA no bloquee el hilo principal de la interfaz (UI Thread).
+- **Multi-Agent Swarm Logic:** El sistema fue orquestado simulando departamentos de ingeniería especializados en Frontend, Backend e Infraestructura de IA.
+- **Modularidad Radical:** Cada módulo (DB, Worker, UI) es independiente, permitiendo actualizaciones en caliente sin comprometer la integridad global.
+
+---
+
 ## 🏗️ Arquitectura del Sistema
 
 ```mermaid
@@ -54,6 +83,14 @@ graph TD
     D --> J[Metabolic Forecaster]
     J --> B
 ```
+
+---
+
+## 🚀 Roadmap 2026 (Próximas Fases)
+
+- **Fase 5: Vision Edge:** Implementación de reconocimiento de platillos mediante Computer Vision local (MobileNet/YOLOv8-tiny).
+- **Fase 6: Wearable Bridge:** Integración directa con CGMs (Continuous Glucose Monitors) vía Bluetooth Web API.
+- **Fase 7: Health Insights:** Generación de reportes PDF clínicos automatizados con análisis estadístico avanzado.
 
 ---
 

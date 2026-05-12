@@ -1,0 +1,146 @@
+{
+  "version": "1.1",
+  "descripcion": "Diccionario multimodal de carbohidratos con mapeo de sinónimos - BloodCare",
+  "diccionario": [
+    {
+      "nombre": "Taco al pastor",
+      "alias": ["pastor", "taco de adobada", "trompo"],
+      "carbohidratos_g": 18,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Menudo",
+      "alias": ["pancita", "mondongo", "caldo de panza"],
+      "carbohidratos_g": 21,
+      "porcion": "1 plato (300ml)",
+      "categoria": "Sopas y Caldos"
+    },
+    {
+      "nombre": "Guajolota",
+      "alias": ["torta de tamal", "guajolocombo"],
+      "carbohidratos_g": 85,
+      "porcion": "1 pieza",
+      "categoria": "Tortas y Lonches"
+    },
+    {
+      "nombre": "Tamal oaxaqueño",
+      "alias": ["tamal de hoja de platano", "oaxaqueño"],
+      "carbohidratos_g": 48,
+      "porcion": "1 pieza",
+      "categoria": "Tamales"
+    },
+    {
+      "nombre": "Chilaquiles",
+      "alias": ["chilaquiles verdes", "chilaquiles rojos", "chilaquiles con huevo"],
+      "carbohidratos_g": 45,
+      "porcion": "1 plato (80g totopos)",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Quesadilla de comal",
+      "alias": ["queta", "quesadilla de queso", "quesadilla de masa"],
+      "carbohidratos_g": 16,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Mole poblano",
+      "alias": ["mole con pollo", "pollo en mole"],
+      "carbohidratos_g": 65,
+      "porcion": "1 plato con arroz",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Cochinita pibil",
+      "alias": ["tacos de cochinita", "panuchos", "salbutes"],
+      "carbohidratos_g": 40,
+      "porcion": "3 piezas",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Pozole",
+      "alias": ["pozole rojo", "pozole blanco", "pozole verde"],
+      "carbohidratos_g": 34,
+      "porcion": "1 plato mediano",
+      "categoria": "Sopas y Caldos"
+    },
+    {
+      "nombre": "Pambazo",
+      "alias": ["pambazo de papa con chorizo"],
+      "carbohidratos_g": 65,
+      "porcion": "1 pieza",
+      "categoria": "Tortas y Lonches"
+    },
+    {
+      "nombre": "Enfrijoladas",
+      "alias": ["tortillas con frijol"],
+      "carbohidratos_g": 52,
+      "porcion": "3 piezas",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Esquites",
+      "alias": ["trolelobus", "elote en vaso", "chaska"],
+      "carbohidratos_g": 32,
+      "porcion": "1 vaso (200ml)",
+      "categoria": "Antojitos"
+    },
+    {
+      "nombre": "Torta ahogada",
+      "alias": ["torta de jalisco", "ahogada"],
+      "carbohidratos_g": 55,
+      "porcion": "1 pieza",
+      "categoria": "Tortas y Lonches"
+    },
+    {
+      "nombre": "Chile en nogada",
+      "alias": ["chile patrio"],
+      "carbohidratos_g": 88,
+      "porcion": "1 pieza",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Tlacoyo",
+      "alias": ["tlacoyo de haba", "tlacoyo de frijol", "tlacoyo de requeson"],
+      "carbohidratos_g": 32,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Agua de horchata",
+      "alias": ["horchata", "agua de arroz"],
+      "carbohidratos_g": 30,
+      "porcion": "1 vaso (250ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Champurrado",
+      "alias": ["atole de chocolate"],
+      "carbohidratos_g": 38,
+      "porcion": "1 taza",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Arroz con leche",
+      "alias": ["postre de arroz"],
+      "carbohidratos_g": 48,
+      "porcion": "1 taza",
+      "categoria": "Postres"
+    },
+    {
+      "nombre": "Tacos de canasta",
+      "alias": ["tacos sudados", "tacos de la bicicleta"],
+      "carbohidratos_g": 15,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Barbacoa",
+      "alias": ["consome y tacos de barbacoa", "tacos de oveja"],
+      "carbohidratos_g": 15,
+      "porcion": "1 taco",
+      "categoria": "Tacos y Antojitos"
+    }
+  ]
+}

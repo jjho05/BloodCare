@@ -1,0 +1,18 @@
+{
+  "n_features": 10,
+  "lookback_steps": 96,
+  "horizon_steps": 12,
+  "hidden_size": 512,
+  "num_layers": 1,
+  "bidirectional": false,
+  "dropout": 0.1,
+  "fc_hidden_size": 64,
+  "use_quantiles": true,
+  "quantiles": [
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    0.9
+  ]
+}

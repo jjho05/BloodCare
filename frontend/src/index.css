@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Colors based on BloodCare iOS Native Minimalist theme */
+  --color-primary: #004ad4;
+  --color-primary-container: #3265ef;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #f5f4ff;
+  
+  --color-surface: #faf8ff;
+  --color-surface-container: #ededf9;
+  --color-surface-container-low: #f3f2ff;
+  --color-on-surface: #191b24;
+  --color-on-surface-variant: #434655;
+  
+  --color-error: #ba1a1a;
+  --color-tertiary: #973b00;
+  
+  --color-outline: #737686;
+  --color-outline-variant: #c3c5d7;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+.ios-blur {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.ios-card-shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}

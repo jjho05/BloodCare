@@ -559,76 +559,70 @@ export default function App() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const source = context.createMediaStreamSource(stream);
+      const processor = context.createScriptProcessor(4096, 1, 1);
       
-      // Detección de Silencio (Inspirado en Olvera Suite)
-      audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const source = audioContext.current.createMediaStreamSource(stream);
-      analyser.current = audioContext.current.createAnalyser();
-      analyser.current.fftSize = 256;
-      source.connect(analyser.current);
-
-      const bufferLength = analyser.current.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      const checkSilence = () => {
-        if (!analyser.current) return;
-        analyser.current.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b) / bufferLength;
-
-        if (average > 12) { // Umbral de voz
+      const audioChunks: Float32Array[] = [];
+      
+      processor.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0);
+        audioChunks.push(new Float32Array(inputData));
+        
+        // Detección de Silencio
+        const average = inputData.reduce((a, b) => a + Math.abs(b), 0) / inputData.length;
+        if (average > 0.05) {
           if (silenceTimer.current) { clearTimeout(silenceTimer.current); silenceTimer.current = null; }
         } else {
           if (!silenceTimer.current) {
-            silenceTimer.current = setTimeout(() => stopRecording(), 1500); // 1.5s de silencio
+            silenceTimer.current = setTimeout(() => stopRecording(), 1500);
           }
         }
-        animationFrame.current = requestAnimationFrame(checkSilence);
       };
 
-      const recorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = async () => {
-        if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
-        if (silenceTimer.current) clearTimeout(silenceTimer.current);
-        setIsRecording(false);
+      source.connect(processor);
+      processor.connect(context.destination);
+      
+      audioContext.current = context;
+      (window as any).audioProcessor = processor;
+      (window as any).audioStream = stream;
+      
+      setIsRecording(true);
+      showToast('Escuchando...', 'info');
+
+      (window as any).stopRecordingFunc = async () => {
+        processor.disconnect();
+        source.disconnect();
+        stream.getTracks().forEach(t => t.stop());
+        
         showToast('Analizando audio... 🧠', 'info');
         
-        const blob = new Blob(chunks, { type: 'audio/wav' });
-        const arrayBuffer = await blob.arrayBuffer();
+        // Unificar Chunks
+        const totalLength = audioChunks.reduce((acc, chunk) => acc + chunk.length, 0);
+        const mergedArray = new Float32Array(totalLength);
+        let offset = 0;
+        for (const chunk of audioChunks) { mergedArray.set(chunk, offset); offset += chunk.length; }
         
-        // Pipeline de Resampleo Profesional
-        const tempCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const decodedBuffer = await tempCtx.decodeAudioData(arrayBuffer);
+        // Resamplear a 16kHz
+        const offlineCtx = new OfflineAudioContext(1, (totalLength * 16000) / context.sampleRate, 16000);
+        const buffer = offlineCtx.createBuffer(1, totalLength, context.sampleRate);
+        buffer.getChannelData(0).set(mergedArray);
         
-        const offlineCtx = new OfflineAudioContext(
-          decodedBuffer.numberOfChannels,
-          decodedBuffer.duration * 16000,
-          16000
-        );
-        
-        const source = offlineCtx.createBufferSource();
-        source.buffer = decodedBuffer;
-        source.connect(offlineCtx.destination);
-        source.start();
+        const sourceNode = offlineCtx.createBufferSource();
+        sourceNode.buffer = buffer;
+        sourceNode.connect(offlineCtx.destination);
+        sourceNode.start();
         
         const resampledBuffer = await offlineCtx.startRendering();
-        const float32Data = resampledBuffer.getChannelData(0);
+        worker.current?.postMessage({ type: 'transcribe', audio: resampledBuffer.getChannelData(0) });
         
-        // Enviar a la IA
-        worker.current?.postMessage({ type: 'transcribe', audio: float32Data });
-        await tempCtx.close();
-        if (audioContext.current) { audioContext.current.close(); audioContext.current = null; }
+        await context.close();
+        setIsRecording(false);
       };
-      recorder.start();
-      mediaRecorder.current = recorder;
-      setIsRecording(true);
-      checkSilence();
-      showToast('Escuchando...', 'info');
-    } catch (err) { showToast('Permiso denegado', 'error'); }
+    } catch (err) { showToast('Error de micro', 'error'); }
   };
 
-  const stopRecording = () => { if (mediaRecorder.current?.state === 'recording') mediaRecorder.current.stop(); };
+  const stopRecording = () => { if ((window as any).stopRecordingFunc) (window as any).stopRecordingFunc(); };
 
   const addManualMeal = async (food: any) => {
     await db.meals.add({ ...food, user_id: 1, timestamp: new Date().toISOString(), synced: 0 });

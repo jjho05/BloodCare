@@ -208,7 +208,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
-const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSettings, setScreen }: any) => {
+const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSettings, setScreen, onManualGlucose }: any) => {
   const avg = historyRecords.length > 0 ? Math.round(historyRecords.reduce((a:any, b:any) => a + b.value, 0) / historyRecords.length) : 0;
   const max = historyRecords.length > 0 ? Math.max(...historyRecords.map((r:any) => r.value)) : 0;
   const min = historyRecords.length > 0 ? Math.min(...historyRecords.map((r:any) => r.value)) : 0;

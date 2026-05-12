@@ -99,6 +99,17 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: string, setScreen
   );
 };
 
+const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: (credentialResponse: any) => void }) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col items-center justify-center p-8 bg-surface text-on-surface relative overflow-hidden">
+    <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+    <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center shadow-2xl shadow-primary/20 mb-8 relative z-10"><Droplet className="text-white w-12 h-12" /></div>
+    <div className="text-center space-y-3 mb-12 relative z-10"><h1 className="text-5xl font-black tracking-tighter">BloodCare</h1><p className="text-on-surface-variant/80 font-medium max-w-[260px] mx-auto leading-tight text-lg">Tu compañero inteligente para la diabetes.</p></div>
+    <div className="w-full max-w-xs space-y-4 relative z-10 flex flex-col items-center">
+      <GoogleLogin onSuccess={onLoginSuccess} onError={() => console.log('Login Failed')} shape="pill" theme="filled_blue" text="continue_with" width="320" />
+    </div>
+  </motion.div>
+);
+
 const DashboardScreen = ({ data, currentVal, onSave }: { data: any, currentVal: number, onSave: (v: number) => void }) => {
   const [val, setVal] = useState(currentVal);
   const max = data ? Math.round(Math.max(...data.prediction)) : 180;

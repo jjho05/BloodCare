@@ -63,7 +63,7 @@ export default function App() {
           const learnedFood = { 
             ...food, 
             nombre: qty > 1 ? `${qty}x ${food.nombre}` : food.nombre, 
-            carbohidratos_g: food.carbohidratos_g * qty 
+            calorias_kcal: food.calorias_kcal * qty 
           };
           addManualMeal(learnedFood);
           // Aprender para la próxima
@@ -76,7 +76,7 @@ export default function App() {
           const foodMatch = foodDictionary.diccionario.find(f => f.nombre === match.id);
           if (foodMatch) {
             const qty = quantity || 1;
-            addManualMeal({ ...foodMatch, nombre: qty > 1 ? `${qty}x ${foodMatch.nombre}` : foodMatch.nombre, carbohidratos_g: foodMatch.carbohidratos_g * qty });
+            addManualMeal({ ...foodMatch, nombre: qty > 1 ? `${qty}x ${foodMatch.nombre}` : foodMatch.nombre, calorias_kcal: foodMatch.calorias_kcal * qty });
             showToast(`¡Detectado! ${qty > 1 ? qty + 'x ' : ''}${foodMatch.nombre} ✅`);
           }
         } else {
@@ -113,7 +113,7 @@ export default function App() {
     const pendingMeals = await db.meals.where('synced').equals(0).toArray();
     for (const meal of pendingMeals) {
       try {
-        await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: meal.food_name, carbs_g: meal.carbs_g }) });
+        await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: meal.food_name, kcal: meal.kcal }) });
         await db.meals.update(meal.id!, { synced: 1 });
       } catch (e) { break; }
     }

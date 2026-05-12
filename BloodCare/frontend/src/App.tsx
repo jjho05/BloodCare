@@ -324,7 +324,32 @@ const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], dat
 
 const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiStatus, online }: any) => {
   const [query, setQuery] = useState('');
-  const results = query.length > 2 ? foodDictionary.diccionario.filter(f => f.nombre.toLowerCase().includes(query.toLowerCase()) || f.alias.some(a => a.toLowerCase().includes(query.toLowerCase()))).slice(0, 5) : [];
+  
+  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const searchQ = normalize(query);
+
+  const results = query.length > 1 ? foodDictionary.diccionario
+    .map(f => {
+      const normNombre = normalize(f.nombre);
+      const normAlias = f.alias.map(normalize);
+      let score = 0;
+      
+      // Asignar puntuación basada en la relevancia
+      if (normNombre === searchQ) score = 100;
+      else if (normNombre.startsWith(searchQ)) score = 50;
+      else if (normNombre.includes(` ${searchQ}`)) score = 30;
+      else if (normNombre.includes(searchQ)) score = 10;
+      else if (normAlias.some(a => a === searchQ)) score = 80;
+      else if (normAlias.some(a => a.startsWith(searchQ))) score = 40;
+      else if (normAlias.some(a => a.includes(` ${searchQ}`))) score = 20;
+      else if (normAlias.some(a => a.includes(searchQ))) score = 5;
+      
+      return { item: f, score };
+    })
+    .filter(res => res.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8)
+    .map(res => res.item) : [];
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">

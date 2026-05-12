@@ -16,8 +16,9 @@ BloodCare es una **infraestructura de salud soberana** de grado industrial. En u
 
 ### 🧠 Inteligencia Artificial Local (On-Device Processing)
 El núcleo de inteligencia opera de forma autónoma mediante un **Web Worker** dedicado, garantizando que el hilo principal de la interfaz (UI Thread) permanezca libre para una experiencia de usuario fluida (60 FPS):
-- **Pipeline de Audio (Whisper):** Integración de `@xenova/transformers` ejecutando modelos de reconocimiento de voz. El audio es procesado mediante **WebAssembly (WASM)**, permitiendo una transcripción casi instantánea sin consumo de datos.
-- **Búsqueda Semántica Vectorial:** Los alimentos del diccionario clínico se transforman en *embeddings* matemáticos. Al buscar, el sistema realiza un cálculo de **similitud de coseno** en el cliente para encontrar la coincidencia más cercana, incluso si el usuario usa sinónimos o lenguaje coloquial.
+- **Pipeline de Audio (Whisper):** Integración de `@xenova/transformers` ejecutando modelos de reconocimiento de voz. El audio es procesado mediante **WebAssembly (WASM)** y **ONNX Runtime**, permitiendo una transcripción casi instantánea sin consumo de datos.
+- **Cuantización de Modelos:** Los modelos de IA han sido cuantizados (8-bit) para reducir su tamaño sin sacrificar precisión, permitiendo su descarga y ejecución eficiente en navegadores móviles.
+- **Búsqueda Semántica Vectorial:** Los alimentos del diccionario clínico se transforman en *embeddings* matemáticos. Al buscar, el sistema realiza un cálculo de **similitud de coseno** en el cliente para encontrar la coincidencia más cercana.
 - **Normalización de Porciones:** Un motor heurístico local extrae cantidades y unidades de medida de la transcripción, recalculando automáticamente la carga glucémica antes de guardarla en la base de datos.
 
 ### 💾 Persistencia Resiliente (IndexedDB Architecture)
@@ -33,6 +34,37 @@ Implementamos una máquina de estados sólida para la sincronización entre el d
 
 ---
 
+## 💻 Arquitectura de Componentes (Frontend)
+
+El sistema está construido de forma modular para garantizar escalabilidad:
+- **LoginScreen:** Gestión de autenticación dual con validación en tiempo real y transición fluida mediante `AnimatePresence`.
+- **DashboardScreen:** El centro de mando metabólico. Calcula promedios, picos y valles en el cliente para ofrecer feedback instantáneo.
+- **VoiceLogScreen:** Interfaz multimodal que orquesta el `MediaRecorder` y el `Web Worker` de IA. Incluye un buscador manual con filtrado ultra-rápido.
+- **PredictionScreen:** Visualizador de tendencias que integra gráficos de `recharts` con los datos analíticos del motor predictivo.
+- **ProfileScreen:** Panel de gobernanza donde el usuario define sus metas metabólicas, las cuales se persisten inmediatamente en la base de datos soberana.
+
+---
+
+## 🌐 Integración de Backend y API
+
+Aunque BloodCare es soberano, ofrece una capa de respaldo en la nube mediante una API robusta construida en **FastAPI**:
+- **POST `/predict`:** Recibe el historial local y devuelve una narrativa clínica generada por IA.
+- **POST `/records/meal`:** Sincroniza las comidas locales con el repositorio central seguro.
+- **POST `/records/glucose`:** Consolida el historial de mediciones para análisis médico remoto.
+
+### Ejemplo de Estructura de Datos (Meal Record):
+```json
+{
+  "user_id": 1,
+  "food_name": "Tacos de frijol",
+  "carbs_g": 35,
+  "timestamp": "2026-05-11T23:29:33Z",
+  "synced": 0
+}
+```
+
+---
+
 ## 🎨 Sistema de Diseño Maestro (High-Fidelity UI)
 
 ### 💎 UX Cinematográfica y Adaptativa
@@ -45,8 +77,8 @@ Implementamos una máquina de estados sólida para la sincronización entre el d
 ## 🛡️ Seguridad y Sanitización (Client-Side Hardening)
 
 - **Aislamiento de Ejecución:** Los modelos de IA corren en un entorno aislado de la memoria del navegador principal, mitigando riesgos de fugas de datos.
-- **Privacidad Efímera:** El buffer de audio se limpia de forma proactiva tras el procesamiento; BloodCare no "escucha" en segundo plano, solo cuando el usuario activa la función de voz soberana.
-- **Sanitización de Datos:** Todos los inputs son filtrados localmente para prevenir inyecciones de código o datos corruptos en la base de datos `IndexedDB`.
+- **Privacidad Efímera:** El buffer de audio se limpia de forma proactiva tras el procesamiento; BloodCare no "escucha" en segundo plano.
+- **Manejo de Errores:** El sistema implementa "Graceful Degradation"; si un modelo de IA falla en cargar, el usuario puede seguir registrando datos manualmente sin pérdida de funcionalidad core.
 
 ---
 

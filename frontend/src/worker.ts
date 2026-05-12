@@ -56,7 +56,7 @@ self.onmessage = async (e) => {
     // Búsqueda Semántica
     if (extractor && dictionaryVectors.length > 0) {
       const queryOutput = await extractor(transcript, { pooling: 'mean', normalize: true });
-      const queryVector = Array.from(queryOutput.data);
+      const queryVector = Array.from(queryOutput.data) as number[];
       
       const scores = dictionaryVectors.map(dv => ({
         id: dv.id,

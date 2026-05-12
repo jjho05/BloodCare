@@ -263,6 +263,13 @@
     { "nombre": "Huevo Cocido", "alias": ["huevo duro", "huevo hervido", "huevo cocido"], "carbohidratos_g": 1, "porcion": "1 pieza", "categoria": "Desayunos" },
     { "nombre": "Huevo con Salchicha", "alias": ["huevo salchicha"], "carbohidratos_g": 3, "porcion": "2 piezas", "categoria": "Desayunos" },
     { "nombre": "Taco de Huevo", "alias": ["taco huevo"], "carbohidratos_g": 13, "porcion": "1 pieza", "categoria": "Tacos y Antojitos" },
+    { "nombre": "Mezcalita", "alias": ["mezcalita de sabor", "mezcal con jugo"], "carbohidratos_g": 22, "porcion": "1 vaso", "categoria": "Bebidas" },
+    { "nombre": "Carajillo", "alias": ["licor 43 con cafe"], "carbohidratos_g": 35, "porcion": "1 vaso", "categoria": "Bebidas" },
+    { "nombre": "Whisky", "alias": ["jack daniels", "escoces", "whisky en las rocas"], "carbohidratos_g": 0, "porcion": "1 shot", "categoria": "Bebidas" },
+    { "nombre": "Vodka", "alias": ["vodka solo", "shot de vodka"], "carbohidratos_g": 0, "porcion": "1 shot", "categoria": "Bebidas" },
+    { "nombre": "Ron", "alias": ["bacardi", "ron solo"], "carbohidratos_g": 0, "porcion": "1 shot", "categoria": "Bebidas" },
+    { "nombre": "Cuba Libre", "alias": ["cuba", "ron con coca"], "carbohidratos_g": 38, "porcion": "1 vaso", "categoria": "Bebidas" },
+    { "nombre": "Ginebra", "alias": ["gin", "gin tonic"], "carbohidratos_g": 15, "porcion": "1 copa preparada", "categoria": "Bebidas" },
     { "nombre": "Taco de Escamoles", "alias": ["escamoles"], "carbohidratos_g": 10, "porcion": "1 pieza", "categoria": "Exóticos" },
     { "nombre": "Taco de Chapulines", "alias": ["chapulines"], "carbohidratos_g": 8, "porcion": "1 pieza", "categoria": "Exóticos" }
   ]

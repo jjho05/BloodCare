@@ -1,0 +1,12 @@
+{
+  "name": "BloodCare",
+  "description": "Una aplicación avanzada de monitoreo de glucosa con predicciones basadas en IA y registro de alimentos por voz.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "AI Predictions",
+    "Voice Logging",
+    "Health Monitoring"
+  ]
+}

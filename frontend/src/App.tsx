@@ -25,7 +25,8 @@ import {
   CloudOff,
   StopCircle,
   Plus,
-  Target
+  Target,
+  RefreshCw
 } from 'lucide-react';
 import { 
   XAxis, 
@@ -42,7 +43,7 @@ import { db, type UserSettings } from './db';
 const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.googleusercontent.com";
 
 // --- Types ---
-type Screen = 'login' | 'inicio' | 'prediccion' | 'voz' | 'perfil';
+type Screen = 'login' | 'inicio' | 'prediccion' | 'voz' | 'perfil' | 'ia';
 interface PredictionData {
   prediction: number[];
   narrative: string;
@@ -62,7 +63,8 @@ const Toast = ({ message, type }: { message: string, type: 'success' | 'info' | 
 const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen: (s: Screen) => void }) => {
   const tabs = [
     { id: 'inicio', label: 'Inicio', icon: Home },
-    { id: 'prediccion', label: 'IA', icon: TrendingUp },
+    { id: 'prediccion', label: 'Gráficas', icon: TrendingUp },
+    { id: 'ia', label: 'IA', icon: Brain },
     { id: 'voz', label: 'Voz', icon: Mic },
     { id: 'perfil', label: 'Perfil', icon: User },
   ];
@@ -401,58 +403,6 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
                 <p className="text-sm font-bold">Sin registros hoy</p>
               </div>
             )}
-          {activeTab === 'ia' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <header className="flex items-center justify-between mb-2">
-                <div>
-                  <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Análisis IA</h1>
-                  <p className="text-zinc-500 dark:text-zinc-400">Gemini 2.0 Flash Clinical Review</p>
-                </div>
-                <button 
-                  onClick={generateAnalysis}
-                  disabled={isAnalyzing}
-                  className="p-2 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:scale-110 transition-transform disabled:opacity-50"
-                >
-                  <RefreshCw className={`h-5 w-5 ${isAnalyzing ? 'animate-spin' : ''}`} />
-                </button>
-              </header>
-
-              <div className="p-6 rounded-3xl bg-white/60 dark:bg-zinc-900/60 border border-white dark:border-zinc-800 backdrop-blur-xl shadow-2xl">
-                {isAnalyzing ? (
-                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <div className="relative">
-                      <div className="h-16 w-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Brain className="h-6 w-6 text-blue-500 animate-pulse" />
-                      </div>
-                    </div>
-                    <p className="text-zinc-500 animate-pulse font-medium">Gemini está analizando tus tendencias...</p>
-                  </div>
-                ) : iaAnalysis ? (
-                  <div className="prose dark:prose-invert max-w-none">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Análisis Generado</span>
-                    </div>
-                    <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed text-lg italic font-serif">
-                      "{iaAnalysis}"
-                    </p>
-                    <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-                      <span className="text-xs text-zinc-400">Basado en tus últimos 10 registros</span>
-                      <div className="flex gap-2">
-                        <span className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold">PRECISIÓN ALTA</span>
-                        <span className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold">MÉDICO VIRTUAL</span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-zinc-500">No hay análisis disponible. Pulsa el botón para generar uno.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
           </div>
         </section>
       </main>
@@ -467,6 +417,68 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
           {isRecording ? <StopCircle className="w-10 h-10 text-white" /> : <Mic className="w-10 h-10 text-white fill-current" />}
         </button>
       </div>
+    </motion.div>
+  );
+};
+
+const IAAnalysisScreen = ({ analysis, isAnalyzing, onRefresh }: { analysis: string | null, isAnalyzing: boolean, onRefresh: () => void }) => {
+  return (
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="pb-32 min-h-screen bg-[#F8FAFC]">
+      <header className="px-6 h-20 w-full flex items-center justify-between sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100">
+        <div>
+          <h1 className="text-2xl font-black text-zinc-900 tracking-tight">Análisis IA</h1>
+          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Gemini 3 Flash Preview</p>
+        </div>
+        <button 
+          onClick={onRefresh}
+          disabled={isAnalyzing}
+          className="p-3 rounded-2xl bg-zinc-900 text-white hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+        >
+          <RefreshCw className={`h-5 w-5 ${isAnalyzing ? 'animate-spin' : ''}`} />
+        </button>
+      </header>
+
+      <main className="p-6">
+        <div className="bg-white rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-zinc-50 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+            <Brain className="h-32 w-32" />
+          </div>
+
+          {isAnalyzing ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-6">
+              <div className="relative">
+                <div className="h-20 w-20 rounded-full border-[6px] border-zinc-100 border-t-zinc-900 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-3 w-3 bg-zinc-900 rounded-full animate-ping" />
+                </div>
+              </div>
+              <p className="text-zinc-400 font-medium text-sm animate-pulse">Sincronizando con Gemini 3...</p>
+            </div>
+          ) : analysis ? (
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-8">
+                <div className="h-2 w-8 bg-zinc-900 rounded-full" />
+                <span className="text-[10px] font-black uppercase tracking-tighter">Reporte Médico Virtual</span>
+              </div>
+              <p className="text-xl font-medium text-zinc-800 leading-[1.6] font-serif italic">
+                "{analysis}"
+              </p>
+              <div className="mt-12 pt-8 border-t border-zinc-100 flex items-center justify-between">
+                <div className="flex -space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold">G3</div>
+                  <div className="w-8 h-8 rounded-full bg-zinc-900 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold">BC</div>
+                </div>
+                <span className="text-[10px] font-bold text-zinc-300">VALIDADO POR BLOODCARE ENGINE</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <Brain className="h-12 w-12 mx-auto text-zinc-200 mb-4" />
+              <p className="text-zinc-400 text-sm">Inicia un análisis para obtener recomendaciones clínicas.</p>
+            </div>
+          )}
+        </div>
+      </main>
     </motion.div>
   );
 };
@@ -594,9 +606,6 @@ export default function App() {
     });
     worker.current.postMessage({ type: 'index', dictionary: foodDictionary.diccionario });
     loadLocalData();
-
-    // Disparar análisis de IA si no existe al cargar
-    if (activeTab === 'ia' && !iaAnalysis) generateAnalysis();
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -751,6 +760,7 @@ export default function App() {
     switch (screen) {
       case 'login': return <LoginScreen onLogin={() => setScreen('inicio')} />;
       case 'inicio': return <DashboardScreen currentVal={currentGlucose} online={online} historyRecords={historyRecords} userSettings={userSettings} setScreen={setScreen} />;
+      case 'ia': return <IAAnalysisScreen analysis={iaAnalysis} isAnalyzing={isAnalyzing} onRefresh={generateAnalysis} />;
       case 'prediccion': return <PredictionScreen historyRecords={chartData} data={predictionData} />;
       case 'voz': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
       case 'perfil': return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;

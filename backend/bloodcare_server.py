@@ -14,6 +14,12 @@ from bloodcare_model import BloodCareLSTM, ModelConfig
 from bloodcare_nlg import RiskEvaluator, NarrativeEngine
 from database import get_db, FoodReference, GlucoseRecord, MealLog, User
 from sqlalchemy import String
+import google.generativeai as genai
+import os
+
+# Configurar Gemini
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+vision_model = genai.GenerativeModel("gemini-3-flash-preview")
 
 app = FastAPI(title="BloodCare V2 Brain API", version="2.0.0")
 
@@ -123,11 +129,34 @@ def get_meals(user_id: int, db: Session = Depends(get_db)):
 
 @app.post("/vision/analyze")
 async def analyze_plate(file: UploadFile = File(...)):
-    return {
-        "dish": "Taco al pastor",
-        "detected_carbs": 18.0,
-        "confidence": 0.95
-    }
+    try:
+        # Leer la imagen
+        contents = await file.read()
+        
+        # Prompt médico optimizado para BloodCare
+        prompt = """
+        Eres un experto en nutrición para pacientes diabéticos. 
+        Analiza esta imagen y responde ÚNICAMENTE en formato JSON plano:
+        {
+          "dish": "nombre del plato",
+          "detected_carbs": número estimado de carbohidratos en gramos,
+          "confidence": nivel de confianza entre 0 y 1,
+          "recommendation": "una breve recomendación médica"
+        }
+        """
+        
+        # Enviar a Gemini 3 Flash
+        response = vision_model.generate_content([
+            prompt,
+            {"mime_type": "image/jpeg", "data": contents}
+        ])
+        
+        # Limpiar y parsear la respuesta JSON de Gemini
+        clean_response = response.text.replace("```json", "").replace("```", "").strip()
+        return json.loads(clean_response)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

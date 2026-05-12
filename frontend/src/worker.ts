@@ -72,10 +72,7 @@ self.onmessage = async (e) => {
       
       const output = await transcriber(audio, { 
         language: 'es', 
-        task: 'transcribe',
-        chunk_length_s: 30,
-        stride_length_s: 5,
-        prompt: "Comida, diabetes, glucosa, registro."
+        task: 'transcribe'
       });
       
       const transcript = output.text.trim();

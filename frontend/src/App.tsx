@@ -559,70 +559,37 @@ export default function App() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const context = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const source = context.createMediaStreamSource(stream);
-      const processor = context.createScriptProcessor(4096, 1, 1);
-      
-      const audioChunks: Float32Array[] = [];
-      
-      processor.onaudioprocess = (e) => {
-        const inputData = e.inputBuffer.getChannelData(0);
-        audioChunks.push(new Float32Array(inputData));
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = async () => {
+        setIsRecording(false);
+        showToast('Analizando audio... 🧠', 'info');
+        const blob = new Blob(chunks);
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         
-        // Detección de Silencio
-        const average = inputData.reduce((a, b) => a + Math.abs(b), 0) / inputData.length;
-        if (average > 0.05) {
-          if (silenceTimer.current) { clearTimeout(silenceTimer.current); silenceTimer.current = null; }
-        } else {
-          if (!silenceTimer.current) {
-            silenceTimer.current = setTimeout(() => stopRecording(), 1500);
-          }
-        }
+        // RESAMPLEO MANUAL (Interpolación Lineal)
+        const offlineCtx = new OfflineAudioContext(1, (audioBuffer.duration * 16000), 16000);
+        const source = offlineCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(offlineCtx.destination);
+        source.start();
+        const resampled = await offlineCtx.startRendering();
+        
+        worker.current?.postMessage({ type: 'transcribe', audio: resampled.getChannelData(0) });
+        await audioCtx.close();
       };
-
-      source.connect(processor);
-      processor.connect(context.destination);
       
-      audioContext.current = context;
-      (window as any).audioProcessor = processor;
-      (window as any).audioStream = stream;
-      
+      recorder.start();
+      mediaRecorder.current = recorder;
       setIsRecording(true);
       showToast('Escuchando...', 'info');
-
-      (window as any).stopRecordingFunc = async () => {
-        processor.disconnect();
-        source.disconnect();
-        stream.getTracks().forEach(t => t.stop());
-        
-        showToast('Analizando audio... 🧠', 'info');
-        
-        // Unificar Chunks
-        const totalLength = audioChunks.reduce((acc, chunk) => acc + chunk.length, 0);
-        const mergedArray = new Float32Array(totalLength);
-        let offset = 0;
-        for (const chunk of audioChunks) { mergedArray.set(chunk, offset); offset += chunk.length; }
-        
-        // Resamplear a 16kHz
-        const offlineCtx = new OfflineAudioContext(1, (totalLength * 16000) / context.sampleRate, 16000);
-        const buffer = offlineCtx.createBuffer(1, totalLength, context.sampleRate);
-        buffer.getChannelData(0).set(mergedArray);
-        
-        const sourceNode = offlineCtx.createBufferSource();
-        sourceNode.buffer = buffer;
-        sourceNode.connect(offlineCtx.destination);
-        sourceNode.start();
-        
-        const resampledBuffer = await offlineCtx.startRendering();
-        worker.current?.postMessage({ type: 'transcribe', audio: resampledBuffer.getChannelData(0) });
-        
-        await context.close();
-        setIsRecording(false);
-      };
     } catch (err) { showToast('Error de micro', 'error'); }
   };
 
-  const stopRecording = () => { if ((window as any).stopRecordingFunc) (window as any).stopRecordingFunc(); };
+  const stopRecording = () => { if (mediaRecorder.current?.state === 'recording') mediaRecorder.current.stop(); };
 
   const addManualMeal = async (food: any) => {
     await db.meals.add({ ...food, user_id: 1, timestamp: new Date().toISOString(), synced: 0 });

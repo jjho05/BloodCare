@@ -2,11 +2,38 @@ import { useState, useEffect, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Home, Search, Mic, User as UserIcon, Settings, Bell, Brain, Droplet, Utensils, 
-  Egg, Croissant, ChevronRight, TrendingUp, Activity, History, Lock, Plus, 
-  CheckCircle2, AlertCircle, StopCircle, CloudOff, Cloud, Target, Save
+  Home, 
+  TrendingUp, 
+  Mic, 
+  User, 
+  Settings, 
+  Bell, 
+  PlusCircle, 
+  Info, 
+  ChevronRight, 
+  Lock, 
+  ShieldCheck, 
+  CheckCircle,
+  Utensils,
+  History,
+  Egg,
+  Croissant,
+  Brain,
+  LayoutDashboard,
+  Droplet,
+  Cloud,
+  CloudOff,
+  StopCircle,
+  Plus
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+  XAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  AreaChart,
+  Area
+} from 'recharts';
 
 import foodDictionary from './data/food_dictionary.json';
 import { db, type UserSettings } from './db';
@@ -15,41 +42,52 @@ const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.go
 
 // --- Types ---
 type Screen = 'login' | 'inicio' | 'prediccion' | 'voz' | 'perfil';
-interface PredictionData {
-  prediction: number[];
-  narrative: string;
-}
 
-// --- Components ---
+// --- UI Components ---
 
 const Toast = ({ message, type }: { message: string, type: 'success' | 'info' | 'error' }) => (
   <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }} className="fixed top-0 left-0 right-0 z-[100] flex justify-center px-6">
     <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl ios-blur border ${type === 'success' ? 'bg-success/90 border-success/20 text-white' : type === 'error' ? 'bg-error/90 border-error/20 text-white' : 'bg-primary/90 border-primary/20 text-white'}`}>
-      {type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+      {type === 'success' ? <CheckCircle className="w-5 h-5" /> : <Info className="w-5 h-5" />}
       <span className="font-bold text-sm">{message}</span>
     </div>
   </motion.div>
 );
 
 const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen: (s: Screen) => void }) => {
-  const tabs: { id: Screen, icon: any, label: string }[] = [
-    { id: 'inicio', icon: Home, label: 'Inicio' },
-    { id: 'prediccion', icon: TrendingUp, label: 'IA' },
-    { id: 'voz', icon: Mic, label: 'Voz' },
-    { id: 'perfil', icon: UserIcon, label: 'Perfil' },
+  const tabs = [
+    { id: 'inicio', label: 'Inicio', icon: Home },
+    { id: 'prediccion', label: 'IA', icon: TrendingUp },
+    { id: 'voz', label: 'Voz', icon: Mic },
+    { id: 'perfil', label: 'Perfil', icon: User },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 ios-blur border-t border-outline-variant/30 px-6 pb-8 pt-3">
-      <div className="max-w-md mx-auto flex justify-between items-center">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 ios-blur border-t border-outline-variant/30 px-6 pt-3 pb-8 shadow-lg">
+      <div className="flex items-end justify-between max-w-md mx-auto">
         {tabs.map((tab) => (
-          <button 
+          <button
             key={tab.id}
-            onClick={() => setScreen(tab.id)}
-            className={`flex flex-col items-center gap-1 transition-all ${currentScreen === tab.id ? 'text-primary scale-110' : 'text-on-surface-variant/40 hover:text-on-surface-variant'}`}
+            onClick={() => setScreen(tab.id as Screen)}
+            className={`flex flex-col items-center gap-1 transition-colors ${
+              currentScreen === tab.id ? 'text-primary' : 'text-on-surface-variant/60'
+            }`}
           >
-            <tab.icon className={`w-6 h-6 ${currentScreen === tab.id ? 'fill-primary/10' : ''}`} />
-            <span className="text-[10px] font-bold uppercase tracking-tighter">{tab.label}</span>
+            {tab.id === 'voz' ? (
+              <div className="relative -top-4">
+                <div className={`rounded-full w-14 h-14 flex items-center justify-center shadow-xl shadow-primary/30 transition-transform active:scale-90 ${
+                  currentScreen === 'voz' ? 'bg-primary' : 'bg-primary/90'
+                }`}>
+                  <Mic className="text-white w-7 h-7" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <tab.icon className={`w-6 h-6 ${currentScreen === tab.id ? 'fill-current' : ''}`} />
+                <span className="text-[10px] font-semibold">{tab.label}</span>
+              </>
+            )}
+            {tab.id === 'voz' && <span className="text-[10px] font-semibold mt-[-8px]">{tab.label}</span>}
           </button>
         ))}
       </div>
@@ -57,61 +95,85 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen
   );
 };
 
-const Header = ({ title, online }: { title: string, online?: boolean }) => (
-  <header className="flex items-center justify-between px-5 h-16 w-full sticky top-0 z-40 bg-white/80 ios-blur">
-    <div className="flex items-center gap-2">
-      <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center">
-        <Droplet className="text-primary w-5 h-5" />
-      </div>
-      <span className="font-bold text-xl tracking-tight text-on-surface">{title}</span>
-      {online !== undefined && (online ? <Cloud className="w-4 h-4 text-success opacity-50" /> : <CloudOff className="w-4 h-4 text-error" />)}
-    </div>
-    <div className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
-      <UserIcon className="w-5 h-5 text-on-surface-variant" />
-    </div>
-  </header>
-);
-
-const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
+const Header = ({ title, online, showNotification = true }: { title: string, online?: boolean, showNotification?: boolean }) => {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col p-8 bg-surface overflow-hidden">
-      <div className="flex items-center gap-2 mb-12">
-        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center"><Droplet className="text-primary w-5 h-5" /></div>
-        <span className="font-bold text-xl tracking-tight text-on-surface">BloodCare</span>
+    <header className="flex items-center justify-between px-5 h-16 w-full bg-[#121C2B] md:bg-white md:border-b md:border-outline-variant sticky top-0 z-40">
+      <div className="flex items-center gap-2">
+        <span className="text-[20px] font-bold text-white md:text-primary tracking-tight">{title}</span>
+        {online !== undefined && (online ? <Cloud className="w-4 h-4 text-success opacity-50" /> : <CloudOff className="w-4 h-4 text-error" />)}
       </div>
-      
-      <div className="mt-auto mb-12">
-        <h1 className="text-5xl font-black tracking-tighter mb-4 leading-[0.9]">
-          Toma el<br/>control de tu<br/>
-          <span className="text-primary underline decoration-primary/20">salud</span>.
-        </h1>
-        <p className="text-on-surface-variant/70 font-medium">Asistente inteligente para pacientes metabólicos.</p>
+      {showNotification && (
+        <button className="w-10 h-10 rounded-full bg-white/10 md:bg-surface-container flex items-center justify-center text-white md:text-on-surface">
+          <Bell className="w-5 h-5" />
+        </button>
+      )}
+    </header>
+  );
+};
+
+// --- Screens ---
+
+const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="min-h-screen flex flex-col items-center justify-center p-5 space-y-10 bg-surface"
+    >
+      <div className="flex flex-col items-center text-center space-y-4">
+        <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
+          <Droplet className="w-10 h-10" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-black tracking-tighter text-on-surface">BloodCare</h1>
+          <p className="text-on-surface-variant font-medium">Bienvenido a BloodCare AI</p>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <input type="email" placeholder="Correo electrónico" className="w-full h-12 px-5 bg-white border border-outline-variant/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20" />
-          <input type="password" placeholder="Contraseña" className="w-full h-12 px-5 bg-white border border-outline-variant/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20" />
+      <div className="w-full max-w-[400px] flex flex-col space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider px-1">Correo Electrónico</label>
+            <input 
+              type="email" 
+              placeholder="ejemplo@correo.com" 
+              className="w-full h-12 bg-white border border-outline-variant rounded-xl px-4 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+            />
+          </div>
+          <div className="space-y-1">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Contraseña</label>
+              <button className="text-xs font-bold text-primary">Olvidé mi contraseña</button>
+            </div>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              className="w-full h-12 bg-white border border-outline-variant rounded-xl px-4 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+            />
+          </div>
         </div>
-        
-        <button onClick={onLoginSuccess} className="w-full h-12 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">
+
+        <button 
+          onClick={onLogin}
+          className="w-full h-12 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all"
+        >
           Iniciar Sesión
         </button>
 
-        <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px bg-outline-variant/20"></div>
-          <span className="text-[10px] font-bold text-on-surface-variant/40 uppercase">O</span>
-          <div className="flex-1 h-px bg-outline-variant/20"></div>
+        <div className="flex items-center gap-4">
+          <div className="h-[0.5px] flex-1 bg-outline-variant/30"></div>
+          <span className="text-[10px] font-bold text-outline-variant uppercase tracking-widest">O</span>
+          <div className="h-[0.5px] flex-1 bg-outline-variant/30"></div>
         </div>
 
         <GoogleLogin 
-          onSuccess={onLoginSuccess} 
-          onError={() => console.log('Login Failed')}
+          onSuccess={onLogin} 
+          onError={() => {}}
           shape="pill"
           theme="outline"
           width="100%"
         />
-        
+
         <p className="mt-4 text-center text-[10px] text-on-surface-variant/40 font-bold uppercase tracking-widest">
           Hackatec ITCM Local Stage 2026
         </p>
@@ -120,74 +182,90 @@ const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
   );
 };
 
-const DashboardScreen = ({ data, currentVal, online, avg, isSafe }: any) => {
-  const max = data ? Math.round(Math.max(...data.prediction)) : 180;
-  const min = data ? Math.round(Math.min(...data.prediction)) : 90;
+const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSettings }: any) => {
+  const avg = historyRecords.length > 0 ? Math.round(historyRecords.reduce((a:any, b:any) => a + b.value, 0) / historyRecords.length) : 0;
+  const max = historyRecords.length > 0 ? Math.max(...historyRecords.map((r:any) => r.value)) : 0;
+  const min = historyRecords.length > 0 ? Math.min(...historyRecords.map((r:any) => r.value)) : 0;
+  const isSafe = avg >= userSettings.target_min && avg <= userSettings.target_max;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-surface min-h-screen">
       <Header title="BloodCare" online={online} />
+      
       <main className="px-5 pt-8 space-y-6">
-        <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
-        
+        <div>
+          <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <button className="bg-primary text-white h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary/20">
+              <TrendingUp className="w-5 h-5" />
+              Predicción
+            </button>
+            <button className="bg-white text-on-surface h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all border border-outline-variant/30">
+              <PlusCircle className="w-5 h-5" />
+              Registro
+            </button>
+          </div>
+          <div className="flex justify-center">
+            <div className="inline-flex items-center bg-white px-3 py-1.5 rounded-full border border-outline-variant/10 shadow-sm">
+              <span className={`w-2 h-2 rounded-full mr-2 ${online ? 'bg-success' : 'bg-error'}`}></span>
+              <span className="text-[10px] font-mono font-bold text-on-surface-variant uppercase tracking-widest">
+                LECTURA ACTUAL: {currentVal} MG/DL
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Hero Card */}
         <div className="bg-white ios-card-shadow p-8 rounded-[32px] border border-outline-variant/20 flex flex-col items-center text-center">
-          <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">ESTIMACIÓN ACTUAL</span>
+          <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">PROMEDIO DEL DÍA</span>
           <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-6xl font-bold text-on-surface tracking-tight">{currentVal}</span>
+            <span className={`text-6xl font-bold tracking-tight ${isSafe ? 'text-on-surface' : 'text-error'}`}>{avg}</span>
             <span className="text-lg font-medium text-on-surface-variant/50">mg/dL</span>
           </div>
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border mb-8 ${isSafe ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isSafe ? 'bg-green-500' : 'bg-red-500'}`}></span>
+            <span className="text-[12px] font-semibold">{isSafe ? 'En rango normal' : 'Fuera de meta'}</span>
+          </div>
+          
           <div className="flex gap-6 pt-6 border-t border-outline-variant/10 w-full justify-center">
-            <div className="flex flex-col items-start"><span className="text-[10px] font-mono font-bold opacity-50">MAX (6H)</span><span className="text-lg font-bold">{max}</span></div>
-            <div className="flex flex-col items-start"><span className="text-[10px] font-mono font-bold opacity-50">MIN (6H)</span><span className="text-lg font-bold">{min}</span></div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-error"></div>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-mono font-bold text-on-surface-variant/50 uppercase">MÁXIMO</span>
+                <span className="text-lg font-bold text-on-surface">{max} <span className="text-[10px] font-medium opacity-40 uppercase">Día</span></span>
+              </div>
+            </div>
+            <div className="w-[1px] h-8 bg-outline-variant/20"></div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-tertiary"></div>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-mono font-bold text-on-surface-variant/50 uppercase">MÍNIMO</span>
+                <span className="text-lg font-bold text-on-surface">{min} <span className="text-[10px] font-medium opacity-40 uppercase">Día</span></span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-outline-variant/10 text-center">
-             <p className="text-[10px] font-bold opacity-40 uppercase">Promedio</p>
-             <p className={`text-xl font-bold ${isSafe ? 'text-success' : 'text-error'}`}>{avg} <span className="text-[10px] opacity-30">mg/dL</span></p>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-outline-variant/10 text-center">
-             <p className="text-[10px] font-bold opacity-40 uppercase">Estado</p>
-             <p className={`text-xl font-bold ${isSafe ? 'text-success' : 'text-error'}`}>{isSafe ? 'Óptimo' : 'Alerta'}</p>
-          </div>
-        </div>
-
+        {/* AI Insight */}
         <div className="bg-[#EEF2FF] p-5 rounded-2xl border border-primary/5 flex gap-4">
-          <Brain className="text-primary w-6 h-6 flex-shrink-0" />
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Brain className="text-primary w-6 h-6" />
+          </div>
           <div>
             <h3 className="font-bold text-primary mb-1">Análisis BloodCare IA</h3>
-            <p className="text-sm text-on-surface-variant leading-relaxed">{data?.narrative || "Cargando análisis clínico..."}</p>
+            <p className="text-sm text-on-surface-variant leading-relaxed">
+              Sistema de sincronización <span className="font-semibold text-primary">Offline-First</span> activo para el ITCM.
+            </p>
           </div>
         </div>
-      </main>
-    </motion.div>
-  );
-};
 
-const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], data: PredictionData | null }) => {
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
-      <header className="fixed top-0 z-40 w-full h-11 bg-white/80 ios-blur flex items-center px-4 border-b border-outline-variant/30">
-        <h1 className="text-[17px] font-semibold text-on-surface">Pronóstico BloodCare</h1>
-      </header>
-      <main className="pt-16 px-4 space-y-6">
-        <h2 className="text-3xl font-bold text-on-surface mb-3 tracking-tight">Predicción a 6 horas</h2>
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-outline-variant/20">
-          <div className="bg-[#1e293b] p-4 aspect-[16/9]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={historyRecords.length > 0 ? historyRecords : [{time: '00:00', value: 120}]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <XAxis dataKey="time" stroke="#64748b" fontSize={10} />
-                <Tooltip />
-                <Area type="monotone" dataKey="value" stroke="#3265ef" strokeWidth={3} fill="#3265ef" fillOpacity={0.1} />
-              </AreaChart>
-            </ResponsiveContainer>
+        {/* Security Detail */}
+        <div className="bg-white ios-card-shadow p-5 rounded-2xl border border-outline-variant/30 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="font-bold text-on-surface-variant text-sm">Privacidad Soberana Activa</span>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
-          <h3 className="font-bold mb-2">Narrativa Clínica 📋</h3>
-          <p className="text-sm text-on-surface-variant leading-relaxed">{data?.narrative || "Generando análisis..."}</p>
+          <ShieldCheck className="text-on-surface-variant/40 w-5 h-5" />
         </div>
       </main>
     </motion.div>
@@ -201,16 +279,23 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
       <header className="flex items-center justify-between px-5 h-14 w-full sticky top-0 z-40 bg-white/80 ios-blur">
-        <Settings className="w-6 h-6 text-on-surface" /><span className="font-bold text-lg tracking-tight">BloodCare Bitácora</span>
+        <button className="w-10 h-10 flex items-center justify-center -ml-2">
+          <Settings className="w-6 h-6 text-on-surface" />
+        </button>
+        <span className="font-bold text-lg tracking-tight">BloodCare AI</span>
         {online ? <Cloud className="w-4 h-4 text-success opacity-50" /> : <CloudOff className="w-4 h-4 text-error" />}
       </header>
+
       <main className="p-5 space-y-8">
         <div>
-          <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" /> {aiStatus}</div>
-          <h1 className="text-4xl font-bold text-on-surface mb-2">¿Qué comiste?</h1>
-          <p className="text-lg text-on-surface-variant">Usa tu voz o busca tu comida.</p>
+          <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest">
+            <Lock className="w-3 h-3" />
+            {aiStatus} 🔒
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-on-surface leading-[1.1] mb-2">¿Qué comiste?</h1>
+          <p className="text-lg text-on-surface-variant leading-snug">Dilo en voz alta o busca. Procesamiento 100% privado en tu dispositivo.</p>
         </div>
-        
+
         <div className="relative z-50">
           <input 
             type="text" 
@@ -231,22 +316,49 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
           )}
         </div>
 
-        <div className="space-y-4">
-          <h3 className="font-bold text-on-surface-variant/60 text-xs uppercase tracking-widest">Registros Recientes</h3>
-          {userMeals.length > 0 ? userMeals.map((log: any, i: number) => (
-            <div key={i} className="w-full flex items-center justify-between p-4 bg-surface-container-low rounded-[20px] border border-outline-variant/10">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm"><Utensils className="w-6 h-6" /></div>
-                <div><h4 className="font-bold text-lg">{log.food_name}</h4><p className="text-xs opacity-60">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {log.synced === 0 && '⌛'}</p></div>
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[11px] font-mono font-bold text-on-surface-variant uppercase tracking-widest">RECIENTES</h2>
+            <button className="text-sm font-bold text-primary flex items-center gap-1">
+              <History className="w-4 h-4" />
+              Historial
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {userMeals.length > 0 ? userMeals.map((log: any, i: number) => (
+              <button key={i} className="w-full flex items-center justify-between p-4 bg-surface-container-low rounded-[20px] active:scale-[0.98] transition-transform text-left border border-outline-variant/10">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-primary">
+                    <Utensils className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-on-surface text-lg leading-tight">{log.food_name}</h4>
+                    <p className="text-xs text-on-surface-variant mt-0.5">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {log.synced === 0 && '⌛'}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1.5">
+                  <span className="text-lg font-bold text-on-surface">{log.carbs_g}g</span>
+                </div>
+              </button>
+            )) : (
+              <div className="text-center py-10 opacity-30">
+                <History className="w-10 h-10 mx-auto mb-2" />
+                <p className="text-sm font-bold">Sin registros hoy</p>
               </div>
-              <span className="text-lg font-bold text-primary">{log.carbs_g}g</span>
-            </div>
-          )) : <div className="text-center py-10 opacity-40"><History className="w-12 h-12 mx-auto mb-2" /><p className="text-sm">No hay comidas hoy</p></div>}
-        </div>
+            )}
+          </div>
+        </section>
       </main>
-      <div className="fixed bottom-24 right-6 z-50">
-        <button onClick={onVoiceStart} className={`bg-primary text-white rounded-full w-20 h-20 flex items-center justify-center shadow-2xl active:scale-95 transition-all ${isRecording ? 'bg-error animate-pulse' : ''}`}>
-          {isRecording ? <StopCircle className="w-10 h-10" /> : <Mic className="w-10 h-10" />}
+
+      <div className="fixed bottom-24 right-6 z-50 flex flex-col items-center gap-3">
+        {isRecording && (
+          <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="bg-white/90 ios-blur px-4 py-2 rounded-full text-xs font-bold text-primary shadow-sm border border-primary/10">
+            Escuchando...
+          </motion.div>
+        )}
+        <button onClick={onVoiceStart} className={`rounded-full w-20 h-20 flex items-center justify-center shadow-2xl transition-all ${isRecording ? 'bg-error animate-pulse shadow-error/40' : 'bg-primary shadow-primary/40'}`}>
+          {isRecording ? <StopCircle className="w-10 h-10 text-white" /> : <Mic className="w-10 h-10 text-white fill-current" />}
         </button>
       </div>
     </motion.div>
@@ -257,13 +369,12 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
 export default function App() {
   const [screen, setScreen] = useState<Screen>('login');
   const [currentGlucose, setCurrentGlucose] = useState(123);
-  const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
   const [historyRecords, setHistoryRecords] = useState<any[]>([]);
   const [userMeals, setUserMeals] = useState<any[]>([]);
   const [userSettings, setUserSettings] = useState<UserSettings>({ name: 'Usuario ITCM', target_min: 70, target_max: 140 });
-  const [online, setOnline] = useState(navigator.onLine);
-  const [aiStatus, setAiStatus] = useState('IA Local Lista');
   const [isRecording, setIsRecording] = useState(false);
+  const [aiStatus, setAiStatus] = useState('IA Local Lista');
+  const [online, setOnline] = useState(navigator.onLine);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
 
   const worker = useRef<Worker | null>(null);
@@ -304,7 +415,7 @@ export default function App() {
     const settings = await db.settings.toCollection().first();
     if (settings) setUserSettings(settings);
     setUserMeals(localMeals.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
-    setHistoryRecords(localGlucose.map(r => ({ time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), value: r.value })).reverse());
+    setHistoryRecords(localGlucose.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
   };
 
   const syncAll = async () => {
@@ -355,22 +466,23 @@ export default function App() {
     if (online) syncAll();
   };
 
-  const fetchPrediction = async (glucose: number) => {
-    try {
-      const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ current_glucose: glucose, history: Array(96).fill(glucose), meal_carbs: 0, insulin_units: 0 })
-      });
-      const data = await response.json();
-      setPredictionData(data);
-    } catch (error) { console.error('Error:', error); }
+  const renderScreen = () => {
+    switch (screen) {
+      case 'login': return <LoginScreen onLogin={() => setScreen('inicio')} />;
+      case 'inicio': return <DashboardScreen currentVal={currentGlucose} online={online} historyRecords={historyRecords} userSettings={userSettings} />;
+      case 'voz': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
+      case 'perfil': return (
+        <div className="p-8 text-center pt-20">
+          <Header title="Perfil" />
+          <User className="w-20 h-20 mx-auto text-primary mb-4" />
+          <h2 className="text-2xl font-bold mb-2">{userSettings.name}</h2>
+          <p className="text-on-surface-variant mb-10">Configuración de salud soberana activa.</p>
+          <button onClick={() => setScreen('login')} className="w-full h-12 border border-error text-error rounded-xl font-bold">Cerrar Sesión</button>
+        </div>
+      );
+      default: return <DashboardScreen />;
+    }
   };
-
-  useEffect(() => { if (screen !== 'login') fetchPrediction(currentGlucose); }, [screen]);
-
-  const avgGlucose = historyRecords.length > 0 ? Math.round(historyRecords.reduce((a, b) => a + b.value, 0) / historyRecords.length) : 0;
-  const isSafe = avgGlucose >= userSettings.target_min && avgGlucose <= userSettings.target_max;
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
@@ -378,11 +490,7 @@ export default function App() {
         <AnimatePresence>{toast && <Toast message={toast.message} type={toast.type} />}</AnimatePresence>
         <AnimatePresence mode="wait">
           <div key={screen}>
-            {screen === 'login' && <LoginScreen onLoginSuccess={() => setScreen('inicio')} />}
-            {screen === 'inicio' && <DashboardScreen data={predictionData} currentVal={currentGlucose} online={online} avg={avgGlucose} isSafe={isSafe} />}
-            {screen === 'prediccion' && <PredictionScreen historyRecords={historyRecords} data={predictionData} />}
-            {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />}
-            {screen === 'perfil' && <div className="p-10 text-center">Perfil de Usuario</div>}
+            {renderScreen()}
           </div>
         </AnimatePresence>
         {screen !== 'login' && <Navbar currentScreen={screen} setScreen={setScreen} />}

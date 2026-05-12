@@ -12,7 +12,7 @@ import { db, type UserSettings } from './db';
 
 const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.googleusercontent.com";
 
-// ── COMPONENTES DE UI (ORDENADOS) ──────────────────────────
+// ── COMPONENTES DE UI ──────────────────────────────────────
 
 const Toast = ({ message, type }: { message: string, type: 'success' | 'info' | 'error' }) => (
   <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }} className="fixed top-0 left-0 right-0 z-[100] flex justify-center px-6">
@@ -90,7 +90,7 @@ const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userMeals
           </div>
           <button onClick={() => onSave(val)} className="w-full h-12 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">Guardar Medición</button>
         </div>
-        <div className="bg-[#EEF2FF] dark:bg-primary/10 p-5 rounded-2xl border border-primary/5 flex gap-4"><Brain className="text-primary w-6 h-6 flex-shrink-0" /><div><h3 className="font-bold text-primary mb-1">Análisis BloodCare ITCM</h3><p className="text-sm text-on-surface-variant dark:text-slate-300 leading-relaxed">Sistema optimizado para Hackatec. IA Local lista.</p></div></div>
+        <div className="bg-[#EEF2FF] dark:bg-primary/10 p-5 rounded-2xl border border-primary/5 flex gap-4 text-primary"><Brain className="w-6 h-6 flex-shrink-0" /><div><h3 className="font-bold mb-1">Cerebro BloodCare</h3><p className="text-sm text-on-surface-variant dark:text-slate-300">Sincronización y IA Local activa para ITCM.</p></div></div>
       </main>
     </motion.div>
   );
@@ -142,11 +142,11 @@ const ProfileScreen = ({ userSettings, onUpdate }: { userSettings: UserSettings,
           <div className="bg-surface-container-low dark:bg-slate-800 p-6 rounded-[28px] border dark:border-white/5 space-y-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3"><Target className="text-primary w-5 h-5" /><div><p className="font-bold dark:text-white text-sm">Límite Inferior</p><p className="text-[10px] opacity-40 dark:text-slate-500">Mínimo sugerido (mg/dL)</p></div></div>
-              <input type="number" value={min} onChange={(e) => setMin(parseInt(e.target.value))} className="w-16 h-10 bg-white dark:bg-slate-700 rounded-xl text-center font-bold border dark:border-white/10" />
+              <input type="number" value={min} onChange={(e) => setMin(parseInt(e.target.value) || 0)} className="w-16 h-10 bg-white dark:bg-slate-700 rounded-xl text-center font-bold border dark:border-white/10" />
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3"><TrendingUp className="text-secondary w-5 h-5" /><div><p className="font-bold dark:text-white text-sm">Límite Superior</p><p className="text-[10px] opacity-40 dark:text-slate-500">Máximo sugerido (mg/dL)</p></div></div>
-              <input type="number" value={max} onChange={(e) => setMax(parseInt(e.target.value))} className="w-16 h-10 bg-white dark:bg-slate-700 rounded-xl text-center font-bold border dark:border-white/10" />
+              <input type="number" value={max} onChange={(e) => setMax(parseInt(e.target.value) || 0)} className="w-16 h-10 bg-white dark:bg-slate-700 rounded-xl text-center font-bold border dark:border-white/10" />
             </div>
           </div>
         </div>
@@ -154,8 +154,6 @@ const ProfileScreen = ({ userSettings, onUpdate }: { userSettings: UserSettings,
     </motion.div>
   );
 };
-
-// ── COMPONENTE PRINCIPAL ───────────────────────────────────
 
 export default function App() {
   const [screen, setScreen] = useState('login');
@@ -172,8 +170,10 @@ export default function App() {
   const mediaRecorder = useRef<MediaRecorder | null>(null);
 
   useEffect(() => {
-    window.addEventListener('online', () => setOnline(true));
-    window.addEventListener('offline', () => setOnline(false));
+    const handleOnline = () => { setOnline(true); syncAll(); };
+    const handleOffline = () => setOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     worker.current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     worker.current.onmessage = (e) => {
@@ -186,15 +186,18 @@ export default function App() {
           const adjustedFood = { ...foodMatch, nombre: `${qty}x ${foodMatch.nombre}`, carbohidratos_g: foodMatch.carbohidratos_g * qty };
           addManualMeal(adjustedFood);
           showToast(`IA detectó: ${adjustedFood.nombre}`, 'success');
-        } else {
-          showToast(`No reconocido: ${text}`, 'info');
         }
       }
     };
     worker.current.postMessage({ type: 'load' });
     worker.current.postMessage({ type: 'index', dictionary: foodDictionary.diccionario });
     loadLocalData();
-    return () => worker.current?.terminate();
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      worker.current?.terminate();
+    };
   }, []);
 
   const loadLocalData = async () => {
@@ -204,6 +207,37 @@ export default function App() {
     if (settings) setUserSettings(settings);
     setUserMeals(localMeals.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
     setHistoryRecords(localGlucose.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+  };
+
+  const syncAll = async () => {
+    if (!navigator.onLine) return;
+    
+    // Sincronizar Comidas
+    const pendingMeals = await db.meals.where('synced').equals(0).toArray();
+    for (const meal of pendingMeals) {
+      try {
+        await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ user_id: meal.user_id, food_name: meal.food_name, carbs_g: meal.carbs_g }) 
+        });
+        await db.meals.update(meal.id!, { synced: 1 });
+      } catch (e) { break; }
+    }
+
+    // Sincronizar Glucosa
+    const pendingGlucose = await db.glucose.where('synced').equals(0).toArray();
+    for (const record of pendingGlucose) {
+      try {
+        await fetch('https://bloodcare-backend-jmv5.onrender.com/records/glucose', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ user_id: record.user_id, value: record.value, timestamp: record.timestamp, note: record.note }) 
+        });
+        await db.glucose.update(record.id!, { synced: 1 });
+      } catch (e) { break; }
+    }
+    loadLocalData();
   };
 
   const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
@@ -246,6 +280,7 @@ export default function App() {
     const newMeal = { user_id: 1, food_name: food.nombre, carbs_g: food.carbohidratos_g, timestamp: new Date().toISOString(), synced: 0 };
     await db.meals.add(newMeal);
     loadLocalData();
+    if (online) syncAll();
   };
 
   const saveGlucose = async (val: number) => {
@@ -253,11 +288,12 @@ export default function App() {
     await db.glucose.add(newRecord);
     loadLocalData();
     showToast('Glucosa registrada');
+    if (online) syncAll();
   };
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="max-w-md mx-auto min-h-screen relative bg-surface dark:bg-[#0f172a] text-on-surface dark:text-slate-100 transition-colors duration-300">
+      <div className="max-w-md mx-auto min-h-screen relative bg-surface dark:bg-[#0f172a] text-on-surface dark:text-slate-100 transition-colors duration-300 overflow-x-hidden">
         <AnimatePresence>{toast && <Toast message={toast.message} type={toast.type} />}</AnimatePresence>
         <AnimatePresence mode="wait">
           <div key={screen} className="min-h-screen">

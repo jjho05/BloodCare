@@ -88,34 +88,44 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: string, setScreen
   );
 };
 
-const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: (credentialResponse: any) => void }) => {
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col items-center justify-center p-8 bg-surface text-on-surface relative overflow-hidden">
-      <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-      <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center shadow-2xl shadow-primary/20 mb-8 relative z-10"><Droplet className="text-white w-12 h-12" /></div>
-      <div className="text-center space-y-3 mb-12 relative z-10"><h1 className="text-5xl font-black tracking-tighter">BloodCare</h1><p className="text-on-surface-variant/80 font-medium max-w-[260px] mx-auto leading-tight text-lg">Tu compañero inteligente para la diabetes.</p></div>
-      <div className="w-full max-w-xs space-y-4 relative z-10 flex flex-col items-center">
-        <GoogleLogin onSuccess={onLoginSuccess} onError={() => console.log('Login Failed')} shape="pill" theme="filled_blue" text="continue_with" width="320" />
-      </div>
-    </motion.div>
-  );
-};
+const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: (credentialResponse: any) => void }) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col items-center justify-center p-8 bg-surface text-on-surface relative overflow-hidden">
+    <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+    <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center shadow-2xl shadow-primary/20 mb-8 relative z-10"><Droplet className="text-white w-12 h-12" /></div>
+    <div className="text-center space-y-3 mb-12 relative z-10"><h1 className="text-5xl font-black tracking-tighter">BloodCare</h1><p className="text-on-surface-variant/80 font-medium max-w-[260px] mx-auto leading-tight text-lg">Tu compañero inteligente para la diabetes.</p></div>
+    <div className="w-full max-w-xs space-y-4 relative z-10 flex flex-col items-center">
+      <GoogleLogin onSuccess={onLoginSuccess} onError={() => console.log('Login Failed')} shape="pill" theme="filled_blue" text="continue_with" width="320" />
+    </div>
+  </motion.div>
+);
 
-const DashboardScreen = ({ data, currentVal }: { data: PredictionData | null, currentVal: number }) => {
+const DashboardScreen = ({ data, currentVal, onSave }: { data: PredictionData | null, currentVal: number, onSave: (v: number) => void }) => {
+  const [val, setVal] = useState(currentVal);
   const max = data ? Math.round(Math.max(...data.prediction)) : 180;
   const min = data ? Math.round(Math.min(...data.prediction)) : 90;
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
       <Header title="BloodCare" />
       <main className="px-5 pt-8 space-y-6">
         <h1 className="text-3xl font-bold text-on-surface mb-6">¡Hola de nuevo!</h1>
         <div className="bg-white ios-card-shadow p-8 rounded-[32px] border border-outline-variant/20 flex flex-col items-center text-center">
-          <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">ESTIMACIÓN ACTUAL</span>
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-6xl font-bold text-on-surface tracking-tight">{currentVal}</span>
-            <span className="text-lg font-medium text-on-surface-variant/50">mg/dL</span>
+          <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">REGISTRO RÁPIDO</span>
+          <div className="flex items-center gap-4 mb-4">
+            <button onClick={() => setVal(v => v - 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary active:bg-primary/10">-</button>
+            <div className="flex items-baseline gap-1">
+              <span className="text-6xl font-bold text-on-surface tracking-tight">{val}</span>
+              <span className="text-lg font-medium text-on-surface-variant/50">mg/dL</span>
+            </div>
+            <button onClick={() => setVal(v => v + 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary active:bg-primary/10">+</button>
           </div>
-          <div className="flex gap-6 pt-6 border-t border-outline-variant/10 w-full justify-center">
+          <button 
+            onClick={() => onSave(val)}
+            className="w-full h-12 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
+          >
+            Guardar Medición
+          </button>
+          <div className="flex gap-6 pt-6 border-t border-outline-variant/10 w-full justify-center mt-6">
             <div className="flex flex-col items-start"><span className="text-[10px] font-mono font-bold opacity-50">MAX (6H)</span><span className="text-lg font-bold">{max}</span></div>
             <div className="flex flex-col items-start"><span className="text-[10px] font-mono font-bold opacity-50">MIN (6H)</span><span className="text-lg font-bold">{min}</span></div>
           </div>
@@ -172,41 +182,22 @@ const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, onAddManual }:
           <h1 className="text-4xl font-bold text-on-surface mb-2">¿Qué comiste?</h1>
           <p className="text-lg text-on-surface-variant">Busca entre tus 150 platillos instantáneamente.</p>
         </div>
-
         <div className="relative z-50">
           <div className="relative">
-            <input 
-              type="text" 
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Escribe para buscar..."
-              className="w-full h-14 bg-surface-container-low rounded-2xl px-5 border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface"
-            />
+            <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Escribe para buscar..." className="w-full h-14 bg-surface-container-low rounded-2xl px-5 border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface" />
             <Search className="absolute right-4 top-4 text-on-surface-variant/40" />
           </div>
-          
           {results.length > 0 && (
             <div className="absolute top-16 left-0 right-0 bg-white border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden z-50">
               {results.map((f, i) => (
-                <button 
-                  key={i} 
-                  onClick={() => { onAddManual(f); setQuery(''); }}
-                  className="w-full p-4 text-left hover:bg-primary/5 flex items-center justify-between border-b border-outline-variant/10 last:border-0"
-                >
-                  <div>
-                    <p className="font-bold">{f.nombre}</p>
-                    <p className="text-xs opacity-50">{f.porcion}</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-primary">
-                    <span className="font-bold">{f.carbs_g}g</span>
-                    <Plus className="w-4 h-4" />
-                  </div>
+                <button key={i} onClick={() => { onAddManual(f); setQuery(''); }} className="w-full p-4 text-left hover:bg-primary/5 flex items-center justify-between border-b border-outline-variant/10 last:border-0">
+                  <div><p className="font-bold">{f.nombre}</p><p className="text-xs opacity-50">{f.porcion}</p></div>
+                  <div className="flex items-center gap-2 text-primary"><span className="font-bold">{f.carbohidratos_g}g</span><Plus className="w-4 h-4" /></div>
                 </button>
               ))}
             </div>
           )}
         </div>
-
         <div className="space-y-4">
           <h3 className="font-bold text-on-surface-variant/60 text-xs uppercase tracking-widest">Registros Recientes</h3>
           {userMeals.length > 0 ? userMeals.map((log: any) => (
@@ -250,13 +241,16 @@ export default function App() {
     } catch (error) { console.error(error); }
   };
 
+  const saveGlucose = async (val: number) => {
+    try {
+      await fetch('https://bloodcare-backend-jmv5.onrender.com/records/glucose', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, value: val, note: 'Registro manual' }) });
+      fetchRecords();
+    } catch (error) { console.error(error); }
+  };
+
   const addManualMeal = async (food: any) => {
     try {
-      await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ user_id: 1, food_name: food.nombre, carbs_g: food.carbs_g }) 
-      });
+      await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: food.nombre, carbs_g: food.carbohidratos_g }) });
       fetchMeals();
     } catch (err) { console.error(err); }
   };
@@ -294,7 +288,7 @@ export default function App() {
         <AnimatePresence mode="wait">
           <div key={screen}>
             {screen === 'login' && <LoginScreen onLoginSuccess={() => setScreen('inicio')} />}
-            {screen === 'inicio' && <DashboardScreen data={predictionData} currentVal={currentGlucose} />}
+            {screen === 'inicio' && <DashboardScreen data={predictionData} currentVal={currentGlucose} onSave={(v) => { setCurrentGlucose(v); saveGlucose(v); }} />}
             {screen === 'prediccion' && <PredictionScreen historyRecords={historyRecords} data={predictionData} />}
             {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onImageUpload={handleImageUpload} onVoiceStart={startVoiceRecognition} onAddManual={addManualMeal} />}
             {screen === 'perfil' && <div className="p-10 text-center">Perfil de Usuario</div>}

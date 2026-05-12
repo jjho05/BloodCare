@@ -124,11 +124,16 @@ export default function App() {
 
     worker.current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     worker.current.onmessage = (e) => {
-      const { type, message, text, match } = e.data;
+      const { type, message, text, match, quantity } = e.data;
       if (type === 'status') setAiStatus(message);
       if (type === 'result') {
         const foodMatch = match && match.score > 0.6 ? foodDictionary.diccionario.find(f => f.nombre === match.id) : null;
-        if (foodMatch) addManualMeal(foodMatch);
+        if (foodMatch) {
+          const qty = quantity || 1;
+          const adjustedFood = { ...foodMatch, nombre: `${qty}x ${foodMatch.nombre}`, carbohidratos_g: foodMatch.carbohidratos_g * qty };
+          addManualMeal(adjustedFood);
+          showToast(`IA detectó: ${adjustedFood.nombre} (${adjustedFood.carbohidratos_g}g)`, 'success');
+        }
         else showToast(`No reconocido: ${text}`, 'info');
       }
     };

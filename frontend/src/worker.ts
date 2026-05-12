@@ -6,19 +6,34 @@ env.useBrowserCache = true;
 let transcriber: any = null;
 let extractor: any = null;
 let dictionaryVectors: any[] = [];
-let dictionaryData: any[] = [];
 
-// Función para calcular similitud de cosenos
 function cosineSimilarity(a: number[], b: number[]) {
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
+  let dotProduct = 0, normA = 0, normB = 0;
   for (let i = 0; i < a.length; i++) {
     dotProduct += a[i] * b[i];
     normA += a[i] * a[i];
     normB += b[i] * b[i];
   }
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+// Mapa de números en texto a valores reales
+const numberMap: Record<string, number> = {
+  'un': 1, 'una': 1, 'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5,
+  'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9, 'diez': 10
+};
+
+function extractQuantity(text: string): number {
+  const words = text.toLowerCase().split(' ');
+  // Buscar números explícitos (1, 2, 3...)
+  const numMatch = text.match(/\d+/);
+  if (numMatch) return parseInt(numMatch[0]);
+
+  // Buscar palabras (dos, tres...)
+  for (let word of words) {
+    if (numberMap[word]) return numberMap[word];
+  }
+  return 1; // Default
 }
 
 const init = async () => {
@@ -39,8 +54,6 @@ self.onmessage = async (e) => {
   if (type === 'load') await init();
 
   if (type === 'index' && dictionary) {
-    self.postMessage({ type: 'status', message: 'Indexando Diccionario Local...' });
-    dictionaryData = dictionary;
     dictionaryVectors = await Promise.all(dictionary.map(async (item: any) => {
       const output = await extractor(item.nombre, { pooling: 'mean', normalize: true });
       return { id: item.nombre, vector: Array.from(output.data) };
@@ -52,20 +65,19 @@ self.onmessage = async (e) => {
     if (!transcriber) await init();
     const output = await transcriber(audio, { language: 'spanish', task: 'transcribe' });
     const transcript = output.text;
+    const quantity = extractQuantity(transcript);
     
-    // Búsqueda Semántica
     if (extractor && dictionaryVectors.length > 0) {
       const queryOutput = await extractor(transcript, { pooling: 'mean', normalize: true });
       const queryVector = Array.from(queryOutput.data) as number[];
-      
       const scores = dictionaryVectors.map(dv => ({
         id: dv.id,
         score: cosineSimilarity(queryVector, dv.vector as number[])
       })).sort((a, b) => b.score - a.score);
 
-      self.postMessage({ type: 'result', text: transcript, match: scores[0] });
+      self.postMessage({ type: 'result', text: transcript, match: scores[0], quantity });
     } else {
-      self.postMessage({ type: 'result', text: transcript });
+      self.postMessage({ type: 'result', text: transcript, quantity });
     }
   }
 };

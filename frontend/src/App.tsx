@@ -49,14 +49,29 @@ export default function App() {
 
     worker.current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     worker.current.onmessage = (e) => {
-      const { type, message, match, quantity, text } = e.data;
+      const { type, message, match, quantity, text, dataType, food } = e.data;
       if (type === 'status') setAiStatus(message);
       if (type === 'result') {
-        if (e.data.dataType === 'glucose') {
+        if (dataType === 'glucose') {
           setPendingGlucose(e.data.value);
           showToast(`¿Tu glucosa es ${e.data.value} mg/dL?`, 'info');
           return;
         }
+        
+        if (dataType === 'new_food' && food) {
+          const qty = quantity || 1;
+          const learnedFood = { 
+            ...food, 
+            nombre: qty > 1 ? `${qty}x ${food.nombre}` : food.nombre, 
+            carbohidratos_g: food.carbohidratos_g * qty 
+          };
+          addManualMeal(learnedFood);
+          // Aprender para la próxima
+          db.customFoods.add(food); 
+          showToast(`¡Aprendido! ${food.nombre} (~${food.carbohidratos_g}g carbs) 🧠✅`);
+          return;
+        }
+
         if (match && match.score > 0.35) {
           const foodMatch = foodDictionary.diccionario.find(f => f.nombre === match.id);
           if (foodMatch) {

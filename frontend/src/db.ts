@@ -26,17 +26,27 @@ export interface UserSettings {
   avatar_url?: string;
 }
 
+export interface CustomFood {
+  id?: number;
+  nombre: string;
+  carbohidratos_g: number;
+  porcion: string;
+  alias: string[];
+}
+
 export class BloodCareDB extends Dexie {
   glucose!: Table<GlucoseOffline>;
   meals!: Table<MealOffline>;
   settings!: Table<UserSettings>;
+  customFoods!: Table<CustomFood>;
 
   constructor() {
     super('BloodCareLocalDB');
-    this.version(2).stores({
+    this.version(3).stores({
       glucose: '++id, user_id, timestamp, synced',
       meals: '++id, user_id, timestamp, synced',
-      settings: '++id'
+      settings: '++id',
+      customFoods: '++id, nombre, *alias'
     });
   }
 }

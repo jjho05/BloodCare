@@ -89,6 +89,19 @@ export default function App() {
     worker.current.postMessage({ type: 'index', dictionary: foodDictionary.diccionario });
     loadLocalData();
 
+    // --- MIGRACIÓN GLOBAL CALORÍAS v4 ---
+    const migrationFlag = 'bloodcare_kcal_v4';
+    if (!localStorage.getItem(migrationFlag)) {
+      (async () => {
+        await db.meals.clear();
+        await db.glucose.clear();
+        await db.customFoods.clear();
+        localStorage.setItem(migrationFlag, 'true');
+        console.log('Base de datos reseteada para nueva arquitectura de calorías.');
+        loadLocalData();
+      })();
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);

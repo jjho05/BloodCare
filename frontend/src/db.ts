@@ -42,7 +42,7 @@ export class BloodCareDB extends Dexie {
 
   constructor() {
     super('BloodCareLocalDB');
-    this.version(3).stores({
+    this.version(4).stores({
       glucose: '++id, user_id, timestamp, synced',
       meals: '++id, user_id, timestamp, synced',
       settings: '++id',

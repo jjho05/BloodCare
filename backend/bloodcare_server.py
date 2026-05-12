@@ -8,14 +8,14 @@ import json
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.orm import Session
+import google.generativeai as genai
+import os
 
 # Importar componentes del core de BloodCare
 from bloodcare_model import BloodCareLSTM, ModelConfig
 from bloodcare_nlg import RiskEvaluator, NarrativeEngine
 from database import get_db, FoodReference, GlucoseRecord, MealLog, User
 from sqlalchemy import String
-import google.generativeai as genai
-import os
 
 # Configurar Gemini
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -72,13 +72,7 @@ class MealCreate(BaseModel):
 # ── ENDPOINTS ──────────────────────────────────────────────
 @app.get("/")
 def health_check():
-    return {
-        "status": "online", 
-        "model": "Wide_Shallow_LSTM", 
-        "mae": 13.88, 
-        "db": "Supabase Connected",
-        "brand": "BloodCare"
-    }
+    return {"status": "online", "model": "Wide_Shallow_LSTM", "db": "Connected", "brand": "BloodCare"}
 
 @app.post("/predict")
 async def get_prediction(req: PredictionRequest):
@@ -130,31 +124,23 @@ def get_meals(user_id: int, db: Session = Depends(get_db)):
 @app.post("/vision/analyze")
 async def analyze_plate(file: UploadFile = File(...)):
     try:
-        # Leer la imagen
         contents = await file.read()
-        
-        # Prompt médico optimizado para BloodCare
-        prompt = """
-        Eres un experto en nutrición para pacientes diabéticos. 
-        Analiza esta imagen y responde ÚNICAMENTE en formato JSON plano:
-        {
-          "dish": "nombre del plato",
-          "detected_carbs": número estimado de carbohidratos en gramos,
-          "confidence": nivel de confianza entre 0 y 1,
-          "recommendation": "una breve recomendación médica"
-        }
-        """
-        
-        # Enviar a Gemini 3 Flash
-        response = vision_model.generate_content([
-            prompt,
-            {"mime_type": "image/jpeg", "data": contents}
-        ])
-        
-        # Limpiar y parsear la respuesta JSON de Gemini
+        prompt = """Analiza esta imagen y responde ÚNICAMENTE en JSON: 
+        {"dish": "nombre", "detected_carbs": g, "confidence": 0-1, "recommendation": "texto"}"""
+        response = vision_model.generate_content([prompt, {"mime_type": "image/jpeg", "data": contents}])
         clean_response = response.text.replace("```json", "").replace("```", "").strip()
         return json.loads(clean_response)
-        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/vision/analyze-text")
+async def analyze_text(query: str):
+    try:
+        prompt = f"""Analiza la frase: "{query}" y responde en JSON: 
+        {"dish": "nombre", "detected_carbs": g, "confidence": 0.9, "recommendation": "texto"}"""
+        response = vision_model.generate_content(prompt)
+        clean_response = response.text.replace("```json", "").replace("```", "").strip()
+        return json.loads(clean_response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -3,7 +3,7 @@ import { pipeline, env } from '@xenova/transformers';
 env.allowRemoteModels = true;
 env.useBrowserCache = true;
 
-let transcriber: any = null;
+let GROQ_API_KEY = "";
 let extractor: any = null;
 let dictionaryVectors: any[] = [];
 let isReady = false;
@@ -34,30 +34,27 @@ function extractQuantity(text: string): number {
 
 const init = async () => {
   try {
-    if (!transcriber) {
-      self.postMessage({ type: 'status', message: 'Cargando Whisper Small (Español)...' });
-      transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-small');
-    }
     if (!extractor) {
-      self.postMessage({ type: 'status', message: 'Cargando Buscador Multilingüe...' });
+      self.postMessage({ type: 'status', message: 'Iniciando Motor Semántico...' });
       extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
     }
     isReady = true;
-    self.postMessage({ type: 'status', message: 'IA Local Lista ✅' });
+    self.postMessage({ type: 'status', message: 'Motor de Inteligencia Listo ⚡️' });
   } catch (err) {
-    self.postMessage({ type: 'status', message: 'Error cargando IA: ' + err });
+    self.postMessage({ type: 'status', message: 'Error en Motor: ' + err });
   }
 };
 
 self.onmessage = async (e) => {
-  const { type, audio, dictionary } = e.data;
+  const { type, audioBlob, dictionary, apiKey } = e.data;
 
-  if (type === 'load') await init();
+  if (type === 'load') {
+    if (apiKey) GROQ_API_KEY = apiKey;
+    await init();
+  }
 
   if (type === 'index' && dictionary) {
-    while (!isReady) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
+    while (!isReady) await new Promise(r => setTimeout(r, 200));
     try {
       self.postMessage({ type: 'status', message: 'Indexando diccionario...' });
       dictionaryVectors = await Promise.all(dictionary.map(async (item: any) => {
@@ -65,29 +62,30 @@ self.onmessage = async (e) => {
         return { id: item.nombre, vector: Array.from(output.data) as number[] };
       }));
       self.postMessage({ type: 'status', message: 'Diccionario Listo 📖' });
-    } catch (err) {
-      self.postMessage({ type: 'status', message: 'Error indexando: ' + err });
-    }
+    } catch (err) { console.error('Error indexando:', err); }
   }
 
-  if (type === 'transcribe' && audio) {
+  if (type === 'transcribe' && audioBlob) {
     try {
-      self.postMessage({ type: 'status', message: 'Analizando audio... 🧠' });
-      if (!isReady) await init();
-
-      const audioInput = audio.array ?? audio;
-
-      const output = await transcriber(audioInput, { 
-        language: 'spanish', 
-        task: 'transcribe',
-        sampling_rate: 16000,
-        chunk_length_s: 30,
-        stride_length_s: 5,
-        return_timestamps: false
-      });
+      self.postMessage({ type: 'status', message: 'Transcribiendo con Groq... ⚡️' });
       
-      const transcript = (output.text ?? '').trim().toLowerCase();
-      console.log('[Worker] Transcripción:', transcript);
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'audio.webm');
+      formData.append('model', 'whisper-large-v3-turbo');
+      formData.append('language', 'es');
+      formData.append('prompt', 'Comida mexicana, carbohidratos, diabetes, glucosa.');
+
+      const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${GROQ_API_KEY}` },
+        body: formData
+      });
+
+      if (!response.ok) throw new Error(`Groq API Error: ${response.status}`);
+      const data = await response.json();
+      const transcript = (data.text ?? '').trim().toLowerCase();
+      
+      console.log('[Groq] Transcripción:', transcript);
 
       if (!transcript || transcript.length < 2) {
         self.postMessage({ type: 'result', text: '', match: null, quantity: 1 });
@@ -105,14 +103,12 @@ self.onmessage = async (e) => {
           score: cosineSimilarity(queryVector, dv.vector)
         })).sort((a, b) => b.score - a.score);
 
-        console.log('[Worker] Top 3 matches:', scores.slice(0, 3));
         self.postMessage({ type: 'result', text: transcript, match: scores[0], quantity });
       } else {
         self.postMessage({ type: 'result', text: transcript, match: null, quantity });
       }
     } catch (err) {
-      console.error('[Worker] Error en transcripción:', err);
-      self.postMessage({ type: 'status', message: 'Error en IA: ' + err });
+      self.postMessage({ type: 'status', message: 'Error Groq: ' + err });
     }
   }
 };

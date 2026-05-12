@@ -511,7 +511,10 @@ export default function App() {
         }
       }
     };
-    worker.current.postMessage({ type: 'load' });
+    worker.current.postMessage({ 
+      type: 'load', 
+      apiKey: import.meta.env.VITE_GROQ_API_KEY 
+    });
     worker.current.postMessage({ type: 'index', dictionary: foodDictionary.diccionario });
     loadLocalData();
 
@@ -573,62 +576,14 @@ export default function App() {
           return;
         }
 
-        showToast('Analizando... 🧠', 'info');
-        const blob = new Blob(chunks, { type: mimeType });
-        const arrayBuffer = await blob.arrayBuffer();
-
-        try {
-          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-          // Mezclar a mono
-          let rawData: Float32Array;
-          if (audioBuffer.numberOfChannels > 1) {
-            rawData = new Float32Array(audioBuffer.length);
-            for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
-              const channelData = audioBuffer.getChannelData(ch);
-              for (let i = 0; i < rawData.length; i++) {
-                rawData[i] += channelData[i] / audioBuffer.numberOfChannels;
-              }
-            }
-          } else {
-            rawData = audioBuffer.getChannelData(0);
-          }
-
-          // Resampleo a 16kHz
-          const targetSampleRate = 16000;
-          const resampledLength = Math.floor(audioBuffer.duration * targetSampleRate);
-          const resampledData = new Float32Array(resampledLength);
-          const ratio = audioBuffer.sampleRate / targetSampleRate;
-          for (let i = 0; i < resampledLength; i++) {
-            const position = i * ratio;
-            const index = Math.floor(position);
-            const fraction = position - index;
-            resampledData[i] = index + 1 < rawData.length
-              ? rawData[index] * (1 - fraction) + rawData[index + 1] * fraction
-              : rawData[index];
-          }
-
-          // Normalizar volumen
-          const maxVal = Math.max(...Array.from(resampledData).map(Math.abs));
-          if (maxVal > 0.001) {
-            for (let i = 0; i < resampledData.length; i++) resampledData[i] /= maxVal;
-          } else {
-            showToast('Audio muy bajo, habla más fuerte 🎙️', 'error');
-            await audioCtx.close();
-            return;
-          }
-
-          worker.current?.postMessage({
-            type: 'transcribe',
-            audio: { array: resampledData, sampling_rate: 16000 }
-          });
-
-          await audioCtx.close();
-        } catch (err) {
-          showToast('Error al procesar audio', 'error');
-          console.error(err);
-        }
+        showToast('Transcribiendo con Groq... ⚡️', 'info');
+        const audioBlob = new Blob(chunks, { type: mimeType });
+        
+        // Mandar el Blob directo al worker (Groq se encarga del resto)
+        worker.current?.postMessage({
+          type: 'transcribe',
+          audioBlob: audioBlob
+        });
       };
 
       recorder.start(250);

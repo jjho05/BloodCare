@@ -401,6 +401,58 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
                 <p className="text-sm font-bold">Sin registros hoy</p>
               </div>
             )}
+          {activeTab === 'ia' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <header className="flex items-center justify-between mb-2">
+                <div>
+                  <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Análisis IA</h1>
+                  <p className="text-zinc-500 dark:text-zinc-400">Gemini 2.0 Flash Clinical Review</p>
+                </div>
+                <button 
+                  onClick={generateAnalysis}
+                  disabled={isAnalyzing}
+                  className="p-2 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:scale-110 transition-transform disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-5 w-5 ${isAnalyzing ? 'animate-spin' : ''}`} />
+                </button>
+              </header>
+
+              <div className="p-6 rounded-3xl bg-white/60 dark:bg-zinc-900/60 border border-white dark:border-zinc-800 backdrop-blur-xl shadow-2xl">
+                {isAnalyzing ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div className="relative">
+                      <div className="h-16 w-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Brain className="h-6 w-6 text-blue-500 animate-pulse" />
+                      </div>
+                    </div>
+                    <p className="text-zinc-500 animate-pulse font-medium">Gemini está analizando tus tendencias...</p>
+                  </div>
+                ) : iaAnalysis ? (
+                  <div className="prose dark:prose-invert max-w-none">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Análisis Generado</span>
+                    </div>
+                    <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed text-lg italic font-serif">
+                      "{iaAnalysis}"
+                    </p>
+                    <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                      <span className="text-xs text-zinc-400">Basado en tus últimos 10 registros</span>
+                      <div className="flex gap-2">
+                        <span className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold">PRECISIÓN ALTA</span>
+                        <span className="px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold">MÉDICO VIRTUAL</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-zinc-500">No hay análisis disponible. Pulsa el botón para generar uno.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           </div>
         </section>
       </main>
@@ -479,6 +531,31 @@ export default function App() {
   const [aiStatus, setAiStatus] = useState('IA Local Lista');
   const [isRecording, setIsRecording] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
+  const [iaAnalysis, setIaAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const generateAnalysis = async () => {
+    setIsAnalyzing(true);
+    try {
+      const glucose = await db.glucose.toArray();
+      const meals = await db.meals.toArray();
+      const context = `Datos recientes: Glucosa: ${JSON.stringify(glucose.slice(-10))}, Comidas: ${JSON.stringify(meals.slice(-10))}`;
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `Actúa como BloodCare AI, un asistente experto en metabolismo. Analiza estos datos del paciente y da un reporte breve (máximo 150 palabras), profesional y motivador sobre su estado y qué mejorar: ${context}` }] }]
+        })
+      });
+
+      const data = await response.json();
+      setIaAnalysis(data.candidates[0].content.parts[0].text);
+    } catch (err) {
+      console.error(err);
+      showToast('Error al conectar con Gemini 2.0', 'error');
+    } finally { setIsAnalyzing(false); }
+  };
 
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
@@ -517,6 +594,9 @@ export default function App() {
     });
     worker.current.postMessage({ type: 'index', dictionary: foodDictionary.diccionario });
     loadLocalData();
+
+    // Disparar análisis de IA si no existe al cargar
+    if (activeTab === 'ia' && !iaAnalysis) generateAnalysis();
 
     return () => {
       window.removeEventListener('online', handleOnline);

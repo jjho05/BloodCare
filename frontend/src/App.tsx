@@ -1,79 +1,86 @@
 import { useState, useEffect } from 'react';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Home, 
-  TrendingUp, 
+  Search, 
   Mic, 
-  User, 
+  User as UserIcon, 
   Settings, 
   Bell, 
-  PlusCircle, 
-  Info, 
-  ShieldCheck, 
-  CheckCircle,
+  Brain,
+  Droplet,
   Utensils,
-  History,
   Egg,
   Croissant,
-  Brain,
-  LayoutDashboard,
+  ChevronRight,
+  TrendingUp,
+  Activity,
+  History,
   Lock
 } from 'lucide-react';
 import { 
-  ResponsiveContainer, 
-  AreaChart,
-  Area,
-  CartesianGrid,
-  XAxis,
-  Tooltip
+  AreaChart, 
+  Area, 
+  XAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
 } from 'recharts';
 
-// --- Types ---
-type Screen = 'login' | 'inicio' | 'prediccion' | 'voz' | 'perfil';
+const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.googleusercontent.com";
 
 interface PredictionData {
   prediction: number[];
-  confidence_intervals?: number[][];
+  confidence_intervals: number[][];
   risk_level: string;
   narrative: string;
+  timestamp: string;
 }
 
-// --- Components ---
+// ── COMPONENTES DE UI ──────────────────────────────────────
 
-const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen: (s: Screen) => void }) => {
+const Header = ({ title }: { title: string }) => (
+  <header className="flex items-center justify-between px-5 h-16 w-full sticky top-0 z-40 bg-white/80 ios-blur">
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center">
+        <Droplet className="text-primary w-5 h-5" />
+      </div>
+      <span className="font-bold text-xl tracking-tight text-on-surface">{title}</span>
+    </div>
+    <div className="flex items-center gap-4">
+      <div className="relative">
+        <Bell className="w-6 h-6 text-on-surface-variant" />
+        <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+      </div>
+      <div className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+        <UserIcon className="w-5 h-5 text-on-surface-variant" />
+      </div>
+    </div>
+  </header>
+);
+
+const Navbar = ({ currentScreen, setScreen }: { currentScreen: string, setScreen: (s: string) => void }) => {
   const tabs = [
-    { id: 'inicio', label: 'Inicio', icon: Home },
-    { id: 'prediccion', label: 'IA', icon: TrendingUp },
-    { id: 'voz', label: 'Voz', icon: Mic },
-    { id: 'perfil', label: 'Perfil', icon: User },
+    { id: 'inicio', icon: Home, label: 'Inicio' },
+    { id: 'prediccion', icon: TrendingUp, label: 'IA' },
+    { id: 'voz', icon: Mic, label: 'Voz' },
+    { id: 'perfil', icon: UserIcon, label: 'Perfil' },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 ios-blur border-t border-outline-variant/30 px-6 pt-3 pb-8 shadow-lg">
-      <div className="flex items-end justify-between max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 ios-blur border-t border-outline-variant/30 px-6 pb-8 pt-3">
+      <div className="max-w-md mx-auto flex justify-between items-center">
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setScreen(tab.id as Screen)}
-            className={`flex flex-col items-center gap-1 transition-colors ${
-              currentScreen === tab.id ? 'text-primary' : 'text-on-surface-variant/60'
+            onClick={() => setScreen(tab.id)}
+            className={`flex flex-col items-center gap-1 transition-all ${
+              currentScreen === tab.id ? 'text-primary scale-110' : 'text-on-surface-variant/40 hover:text-on-surface-variant'
             }`}
           >
-            {tab.id === 'voz' ? (
-              <div className="relative -top-4">
-                <div className={`rounded-full w-14 h-14 flex items-center justify-center shadow-xl shadow-primary/30 transition-transform active:scale-90 ${
-                  currentScreen === 'voz' ? 'bg-primary' : 'bg-primary/90'
-                }`}>
-                  <Mic className="text-white w-7 h-7" />
-                </div>
-              </div>
-            ) : (
-              <>
-                <tab.icon className={`w-6 h-6 ${currentScreen === tab.id ? 'fill-current' : ''}`} />
-                <span className="text-[10px] font-semibold">{tab.label}</span>
-              </>
-            )}
-            {tab.id === 'voz' && <span className="text-[10px] font-semibold mt-[-8px]">{tab.label}</span>}
+            <tab.icon className={`w-6 h-6 ${currentScreen === tab.id ? 'fill-primary/10' : ''}`} />
+            <span className="text-[10px] font-bold uppercase tracking-tighter">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -81,60 +88,42 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen
   );
 };
 
-const Header = ({ title, showNotification = true }: { title: string, showNotification?: boolean }) => {
+const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: (credentialResponse: any) => void }) => {
   return (
-    <header className="flex items-center justify-between px-5 h-16 w-full bg-[#121C2B] md:bg-white md:border-b md:border-outline-variant sticky top-0 z-40">
-      <span className="text-[20px] font-bold text-white md:text-primary tracking-tight">{title}</span>
-      {showNotification && (
-        <button className="w-10 h-10 rounded-full bg-white/10 md:bg-surface-container flex items-center justify-center text-white md:text-on-surface">
-          <Bell className="w-5 h-5" />
-        </button>
-      )}
-    </header>
-  );
-};
-
-// --- Screens ---
-
-const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col items-center justify-center p-5 space-y-10">
-      <div className="flex flex-col items-center text-center space-y-4">
-        <div className="w-16 h-16 bg-primary-container rounded-lg flex items-center justify-center text-on-primary">
-          <LayoutDashboard className="w-10 h-10" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-on-surface">BloodCare</h1>
-          <p className="text-on-surface-variant">Bienvenido a BloodCare</p>
-        </div>
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="min-h-screen flex flex-col items-center justify-center p-8 bg-surface text-on-surface relative overflow-hidden"
+    >
+      <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/5 rounded-full blur-3xl"></div>
+      
+      <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center shadow-2xl shadow-primary/20 mb-8 relative z-10">
+        <Droplet className="text-white w-12 h-12" />
       </div>
 
-      <div className="w-full max-w-[400px] flex flex-col space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider px-1">Correo Electrónico</label>
-            <input type="email" placeholder="ejemplo@correo.com" className="w-full h-12 bg-surface-container-lowest border border-outline-variant rounded-lg px-4 focus:ring-1 focus:ring-primary outline-none transition-all" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex justify-between items-center px-1">
-              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Contraseña</label>
-              <button className="text-xs font-bold text-primary">Olvidé mi contraseña</button>
-            </div>
-            <input type="password" placeholder="••••••••" className="w-full h-12 bg-surface-container-lowest border border-outline-variant rounded-lg px-4 focus:ring-1 focus:ring-primary outline-none transition-all" />
-          </div>
+      <div className="text-center space-y-3 mb-12 relative z-10">
+        <h1 className="text-5xl font-black tracking-tighter">BloodCare</h1>
+        <p className="text-on-surface-variant/80 font-medium max-w-[260px] mx-auto leading-tight text-lg">
+          Tu compañero inteligente para la diabetes.
+        </p>
+      </div>
+
+      <div className="w-full max-w-xs space-y-4 relative z-10">
+        <div className="flex flex-col items-center gap-4">
+          <GoogleLogin
+            onSuccess={onLoginSuccess}
+            onError={() => console.log('Login Failed')}
+            useOneTap
+            shape="pill"
+            theme="filled_blue"
+            text="continue_with"
+            width="320"
+          />
+          <p className="text-[10px] text-on-surface-variant/60 text-center px-4">
+            Al continuar, aceptas nuestros términos de servicio y política de privacidad de datos médicos.
+          </p>
         </div>
-        <button onClick={onLogin} className="w-full h-12 bg-primary text-white font-semibold rounded-lg hover:opacity-90 active:scale-[0.98] transition-all">
-          Iniciar Sesión
-        </button>
-        <div className="flex items-center gap-4">
-          <div className="h-[0.5px] flex-1 bg-outline-variant"></div>
-          <span className="text-[10px] font-mono font-bold text-outline uppercase">O</span>
-          <div className="h-[0.5px] flex-1 bg-outline-variant"></div>
-        </div>
-        <button onClick={onLogin} className="w-full h-12 bg-surface-container-lowest border border-outline-variant text-on-surface font-semibold rounded-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
-          <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" className="w-5 h-5" alt="Google" />
-          <span>Continuar con Google</span>
-        </button>
       </div>
     </motion.div>
   );
@@ -233,9 +222,10 @@ const VoiceLogScreen = () => {
   );
 };
 
-// --- Main App Component ---
+// ── COMPONENTE PRINCIPAL ───────────────────────────────────
+
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('login');
+  const [screen, setScreen] = useState('login');
   const [currentGlucose, setCurrentGlucose] = useState(123);
   const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
 
@@ -243,14 +233,13 @@ export default function App() {
   const [historyRecords, setHistoryRecords] = useState([]);
 
   useEffect(() => {
-    fetchRecords();
-  }, []);
+    if (screen !== 'login') fetchRecords();
+  }, [screen]);
 
   const fetchRecords = async () => {
     try {
       const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/records/glucose?user_id=1');
       const data = await response.json();
-      // Transformar para la gráfica
       const formatted = data.map((r: any) => ({
         time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         value: r.value
@@ -266,15 +255,13 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: 1, value: val, note: 'Registro manual' })
       });
-      fetchRecords(); // Recargar gráfica
+      fetchRecords();
     } catch (error) { console.error('Error guardando:', error); }
   };
 
   const fetchPrediction = async (glucose: number) => {
     try {
-      // Guardar el registro actual antes de predecir
       saveGlucose(glucose);
-      
       const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -287,11 +274,9 @@ export default function App() {
 
   useEffect(() => { if (screen !== 'login') fetchPrediction(currentGlucose); }, [screen]);
 
-  const chartData = predictionData ? predictionData.prediction.map((val, i) => ({ time: `${i * 30}m`, pred: Math.round(val) })) : [];
-
   const renderScreen = () => {
     switch (screen) {
-      case 'login': return <LoginScreen onLogin={() => setScreen('inicio')} />;
+      case 'login': return <LoginScreen onLoginSuccess={() => setScreen('inicio')} />;
       case 'inicio': return <DashboardScreen data={predictionData} currentVal={currentGlucose} />;
       case 'prediccion': return <PredictionScreen historyRecords={historyRecords} data={predictionData} />;
       case 'voz': return <VoiceLogScreen />;
@@ -301,9 +286,11 @@ export default function App() {
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen relative overflow-x-hidden bg-surface">
-      <AnimatePresence mode="wait"><div key={screen}>{renderScreen()}</div></AnimatePresence>
-      {screen !== 'login' && <Navbar currentScreen={screen} setScreen={setScreen} />}
-    </div>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <div className="max-w-md mx-auto min-h-screen relative overflow-x-hidden bg-surface">
+        <AnimatePresence mode="wait"><div key={screen}>{renderScreen()}</div></AnimatePresence>
+        {screen !== 'login' && <Navbar currentScreen={screen} setScreen={setScreen} />}
+      </div>
+    </GoogleOAuthProvider>
   );
 }

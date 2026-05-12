@@ -18,15 +18,25 @@ export interface MealOffline {
   synced: number;
 }
 
+export interface UserSettings {
+  id?: number;
+  name: string;
+  target_min: number;
+  target_max: number;
+  avatar_url?: string;
+}
+
 export class BloodCareDB extends Dexie {
   glucose!: Table<GlucoseOffline>;
   meals!: Table<MealOffline>;
+  settings!: Table<UserSettings>;
 
   constructor() {
     super('BloodCareLocalDB');
-    this.version(1).stores({
+    this.version(2).stores({
       glucose: '++id, user_id, timestamp, synced',
-      meals: '++id, user_id, timestamp, synced'
+      meals: '++id, user_id, timestamp, synced',
+      settings: '++id'
     });
   }
 }

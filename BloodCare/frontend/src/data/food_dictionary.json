@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "2.0",
   "descripcion": "Diccionario multimodal de carbohidratos con mapeo de sinónimos - BloodCare",
   "diccionario": [
     {
@@ -32,7 +32,7 @@
     },
     {
       "nombre": "Chilaquiles",
-      "alias": ["chilaquiles verdes", "chilaquiles rojos", "chilaquiles con huevo"],
+      "alias": ["chilaquiles verdes", "chilaquiles rojos", "chilaquiles con pollo"],
       "carbohidratos_g": 45,
       "porcion": "1 plato (80g totopos)",
       "categoria": "Desayunos"
@@ -302,6 +302,153 @@
       "carbohidratos_g": 39,
       "porcion": "1 lata (355ml)",
       "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Huevo estrellado",
+      "alias": ["huevo", "huevos", "huevo frito", "huevos estrellados", "blanquillos"],
+      "carbohidratos_g": 1,
+      "porcion": "2 piezas",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Huevo revuelto",
+      "alias": ["huevos revueltos", "huevo con jamon", "huevo a la mexicana", "huevo con chorizo"],
+      "carbohidratos_g": 3,
+      "porcion": "2 piezas",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Arroz blanco",
+      "alias": ["arroz", "arroz rojo", "arroz a la mexicana"],
+      "carbohidratos_g": 45,
+      "porcion": "1 taza (160g)",
+      "categoria": "Guarniciones"
+    },
+    {
+      "nombre": "Tortilla de maiz",
+      "alias": ["tortilla", "tortillas", "tortilla de maiz"],
+      "carbohidratos_g": 12,
+      "porcion": "1 pieza",
+      "categoria": "Guarniciones"
+    },
+    {
+      "nombre": "Tortilla de harina",
+      "alias": ["tortilla de harina de trigo", "tortilla grande", "burrita"],
+      "carbohidratos_g": 25,
+      "porcion": "1 pieza",
+      "categoria": "Guarniciones"
+    },
+    {
+      "nombre": "Tostada",
+      "alias": ["tostadas", "tostada de tinga", "tostada de pata"],
+      "carbohidratos_g": 15,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Elote",
+      "alias": ["elote asado", "elote hervido", "elote con mayonesa"],
+      "carbohidratos_g": 27,
+      "porcion": "1 pieza",
+      "categoria": "Antojitos"
+    },
+    {
+      "nombre": "Avena",
+      "alias": ["avena con leche", "avena caliente", "atole de avena"],
+      "carbohidratos_g": 27,
+      "porcion": "1 taza (240ml)",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Cereal con leche",
+      "alias": ["cereal", "zucaritas", "corn flakes", "choco krispis"],
+      "carbohidratos_g": 38,
+      "porcion": "1 taza con leche",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Sandwich",
+      "alias": ["sandwich de jamon", "emparedado", "sandwich de queso"],
+      "carbohidratos_g": 28,
+      "porcion": "1 pieza",
+      "categoria": "Tortas y Lonches"
+    },
+    {
+      "nombre": "Burrito",
+      "alias": ["burritos", "burrito de frijol", "burrito de carne"],
+      "carbohidratos_g": 35,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Leche entera",
+      "alias": ["leche", "vaso de leche", "leche de vaca"],
+      "carbohidratos_g": 12,
+      "porcion": "1 vaso (250ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Jugo de naranja",
+      "alias": ["jugo", "jugo natural", "jugo de frutas"],
+      "carbohidratos_g": 26,
+      "porcion": "1 vaso (250ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Platano",
+      "alias": ["banana", "guineo", "platano tabasco"],
+      "carbohidratos_g": 27,
+      "porcion": "1 pieza mediana",
+      "categoria": "Frutas"
+    },
+    {
+      "nombre": "Manzana",
+      "alias": ["manzana verde", "manzana roja"],
+      "carbohidratos_g": 25,
+      "porcion": "1 pieza mediana",
+      "categoria": "Frutas"
+    },
+    {
+      "nombre": "Galletas Marias",
+      "alias": ["galletas", "galletas de animalitos", "galletas dulces"],
+      "carbohidratos_g": 22,
+      "porcion": "5 piezas",
+      "categoria": "Postres y Panaderia"
+    },
+    {
+      "nombre": "Atole",
+      "alias": ["atole de fresa", "atole de vainilla", "atole de guayaba"],
+      "carbohidratos_g": 35,
+      "porcion": "1 taza (240ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Caldo de pollo",
+      "alias": ["caldo", "consome de pollo", "sopa de pollo"],
+      "carbohidratos_g": 15,
+      "porcion": "1 plato (300ml)",
+      "categoria": "Sopas y Caldos"
+    },
+    {
+      "nombre": "Sopa de fideo",
+      "alias": ["sopa", "fideo", "sopa aguada", "fideos"],
+      "carbohidratos_g": 22,
+      "porcion": "1 plato (300ml)",
+      "categoria": "Sopas y Caldos"
+    },
+    {
+      "nombre": "Carne asada",
+      "alias": ["asada", "tacos de asada", "bistec", "carne de res"],
+      "carbohidratos_g": 0,
+      "porcion": "100g",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Pollo asado",
+      "alias": ["pollo", "pechuga", "pollo rostizado", "pollo a la plancha"],
+      "carbohidratos_g": 0,
+      "porcion": "100g",
+      "categoria": "Platos Fuertes"
     }
   ]
 }

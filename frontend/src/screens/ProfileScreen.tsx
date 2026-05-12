@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { User, Target, TrendingUp } from 'lucide-react';
+import { User, Target, TrendingUp, Trash2, RefreshCcw } from 'lucide-react';
 import type { UserSettings } from '../db';
 
 interface ProfileScreenProps {
   userSettings: UserSettings;
   onUpdate: (settings: UserSettings) => void;
   onLogout: () => void;
+  onClearMeals: () => void;
+  onResetAll: () => void;
 }
 
-const ProfileScreen = ({ userSettings, onUpdate, onLogout }: ProfileScreenProps) => {
+const ProfileScreen = ({ userSettings, onUpdate, onLogout, onClearMeals, onResetAll }: ProfileScreenProps) => {
   const [name, setName] = useState(userSettings.name);
   const [min, setMin] = useState(userSettings.target_min);
   const [max, setMax] = useState(userSettings.target_max);
@@ -67,6 +69,28 @@ const ProfileScreen = ({ userSettings, onUpdate, onLogout }: ProfileScreenProps)
                 className="w-16 h-10 bg-white rounded-xl text-center font-bold border border-outline-variant/30"
               />
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-[11px] font-mono font-bold text-on-surface-variant/60 uppercase tracking-widest">
+            Mantenimiento de Datos
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={onClearMeals}
+              className="flex flex-col items-center justify-center gap-2 p-4 bg-error/5 rounded-[28px] border border-error/10 hover:bg-error/10 transition-colors group"
+            >
+              <Trash2 className="w-5 h-5 text-error group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-black text-error uppercase tracking-widest text-center">Borrar Comidas</span>
+            </button>
+            <button
+              onClick={onResetAll}
+              className="flex flex-col items-center justify-center gap-2 p-4 bg-on-surface/5 rounded-[28px] border border-on-surface/5 hover:bg-on-surface/10 transition-colors group"
+            >
+              <RefreshCcw className="w-5 h-5 text-on-surface/60 group-hover:rotate-180 transition-transform duration-500" />
+              <span className="text-[10px] font-black text-on-surface/60 uppercase tracking-widest text-center">Reiniciar Todo</span>
+            </button>
           </div>
         </div>
 

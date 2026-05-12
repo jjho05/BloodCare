@@ -197,6 +197,22 @@ export default function App() {
     showToast('Perfil actualizado');
   };
 
+  const clearMeals = async () => {
+    await db.meals.clear();
+    await loadLocalData();
+    showToast('Historial de comidas borrado 🗑️');
+  };
+
+  const resetAllData = async () => {
+    if (confirm('¿Estás seguro de borrar TODO? Se perderán glucosas y comidas.')) {
+      await db.meals.clear();
+      await db.glucose.clear();
+      await db.customFoods.clear();
+      await loadLocalData();
+      showToast('Base de datos reiniciada 🔄');
+    }
+  };
+
   const fetchPrediction = async (glucose: number) => {
     try {
       const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/predict', {
@@ -262,7 +278,15 @@ export default function App() {
       case 'glucemia':
         return <GlucoseHistoryScreen records={historyRecords} />;
       case 'perfil':
-        return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;
+        return (
+          <ProfileScreen 
+            userSettings={userSettings} 
+            onUpdate={updateSettings} 
+            onLogout={() => setScreen('login')} 
+            onClearMeals={clearMeals}
+            onResetAll={resetAllData}
+          />
+        );
       default:
         return <DashboardScreen currentVal={0} online={false} historyRecords={[]} userSettings={userSettings} setScreen={setScreen} onManualGlucose={() => {}} onVoiceStart={() => {}} isRecording={false} totalKcal={0} />;
     }

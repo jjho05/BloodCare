@@ -297,6 +297,8 @@ export default function App() {
         showManualGlucose={showManualGlucose}
         onSaveManualGlucose={(val) => { saveGlucose(val); setShowManualGlucose(false); }}
         onCloseManualGlucose={() => setShowManualGlucose(false)}
+        online={online}
+        userSettings={userSettings}
       >
         {renderScreen()}
       </AppShell>

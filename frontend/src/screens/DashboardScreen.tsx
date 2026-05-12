@@ -25,6 +25,7 @@ const DashboardScreen = ({
   onManualGlucose,
   onVoiceStart,
   isRecording,
+  totalKcal,
 }: DashboardScreenProps) => {
   const avg =
     historyRecords.length > 0

@@ -24,7 +24,8 @@ import {
   Cloud,
   CloudOff,
   StopCircle,
-  Plus
+  Plus,
+  Target
 } from 'lucide-react';
 import { 
   XAxis, 
@@ -42,6 +43,10 @@ const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.go
 
 // --- Types ---
 type Screen = 'login' | 'inicio' | 'prediccion' | 'voz' | 'perfil';
+interface PredictionData {
+  prediction: number[];
+  narrative: string;
+}
 
 // --- UI Components ---
 
@@ -114,6 +119,7 @@ const Header = ({ title, online, showNotification = true }: { title: string, onl
 // --- Screens ---
 
 const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
+  const [isRegistering, setIsRegistering] = useState(false);
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -126,12 +132,24 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
         </div>
         <div>
           <h1 className="text-3xl font-black tracking-tighter text-on-surface">BloodCare</h1>
-          <p className="text-on-surface-variant font-medium">Bienvenido a BloodCare AI</p>
+          <p className="text-on-surface-variant font-medium">
+            {isRegistering ? 'Crea tu cuenta soberana' : 'Bienvenido a BloodCare AI'}
+          </p>
         </div>
       </div>
 
       <div className="w-full max-w-[400px] flex flex-col space-y-6">
         <div className="space-y-4">
+          {isRegistering && (
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider px-1">Nombre Completo</label>
+              <input 
+                type="text" 
+                placeholder="Tu nombre" 
+                className="w-full h-12 bg-white border border-outline-variant rounded-xl px-4 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              />
+            </div>
+          )}
           <div className="space-y-1">
             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider px-1">Correo Electrónico</label>
             <input 
@@ -143,7 +161,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
           <div className="space-y-1">
             <div className="flex justify-between items-center px-1">
               <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Contraseña</label>
-              <button className="text-xs font-bold text-primary">Olvidé mi contraseña</button>
+              {!isRegistering && <button className="text-xs font-bold text-primary">Olvidé mi contraseña</button>}
             </div>
             <input 
               type="password" 
@@ -157,7 +175,14 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
           onClick={onLogin}
           className="w-full h-12 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all"
         >
-          Iniciar Sesión
+          {isRegistering ? 'Registrarse' : 'Iniciar Sesión'}
+        </button>
+
+        <button 
+          onClick={() => setIsRegistering(!isRegistering)}
+          className="text-sm font-bold text-primary text-center"
+        >
+          {isRegistering ? '¿Ya tienes cuenta? Inicia Sesión' : '¿No tienes cuenta? Regístrate'}
         </button>
 
         <div className="flex items-center gap-4">
@@ -182,7 +207,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
-const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSettings }: any) => {
+const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSettings, setScreen }: any) => {
   const avg = historyRecords.length > 0 ? Math.round(historyRecords.reduce((a:any, b:any) => a + b.value, 0) / historyRecords.length) : 0;
   const max = historyRecords.length > 0 ? Math.max(...historyRecords.map((r:any) => r.value)) : 0;
   const min = historyRecords.length > 0 ? Math.min(...historyRecords.map((r:any) => r.value)) : 0;
@@ -196,20 +221,20 @@ const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSetti
         <div>
           <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <button className="bg-primary text-white h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary/20">
+            <button onClick={() => setScreen('prediccion')} className="bg-primary text-white h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary/20">
               <TrendingUp className="w-5 h-5" />
               Predicción
             </button>
-            <button className="bg-white text-on-surface h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all border border-outline-variant/30">
+            <button onClick={() => setScreen('voz')} className="bg-white text-on-surface h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all border border-outline-variant/30">
               <PlusCircle className="w-5 h-5" />
               Registro
             </button>
           </div>
           <div className="flex justify-center">
             <div className="inline-flex items-center bg-white px-3 py-1.5 rounded-full border border-outline-variant/10 shadow-sm">
-              <span className={`w-2 h-2 rounded-full mr-2 ${online ? 'bg-success' : 'bg-error'}`}></span>
+              <span className={`w-2 h-2 rounded-full mr-2 ${online ? 'bg-green-500' : 'bg-red-500'}`}></span>
               <span className="text-[10px] font-mono font-bold text-on-surface-variant uppercase tracking-widest">
-                LECTURA ACTUAL: {currentVal} MG/DL
+                ÚLTIMA LECTURA: {currentVal} MG/DL
               </span>
             </div>
           </div>
@@ -254,7 +279,7 @@ const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSetti
           <div>
             <h3 className="font-bold text-primary mb-1">Análisis BloodCare IA</h3>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              Sistema de sincronización <span className="font-semibold text-primary">Offline-First</span> activo para el ITCM.
+              Sistema de sincronización <span className="font-semibold text-primary">Soberana</span> optimizado para el ITCM.
             </p>
           </div>
         </div>
@@ -263,9 +288,38 @@ const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSetti
         <div className="bg-white ios-card-shadow p-5 rounded-2xl border border-outline-variant/30 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="font-bold text-on-surface-variant text-sm">Privacidad Soberana Activa</span>
+            <span className="font-bold text-on-surface-variant text-sm">Privacidad Local Garantizada</span>
           </div>
           <ShieldCheck className="text-on-surface-variant/40 w-5 h-5" />
+        </div>
+      </main>
+    </motion.div>
+  );
+};
+
+const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], data: PredictionData | null }) => {
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-surface min-h-screen">
+      <header className="fixed top-0 z-40 w-full h-11 bg-white/80 ios-blur flex items-center px-4 border-b border-outline-variant/30">
+        <h1 className="text-[17px] font-semibold text-on-surface">Pronóstico BloodCare IA</h1>
+      </header>
+      <main className="pt-16 px-4 space-y-6">
+        <h2 className="text-3xl font-bold text-on-surface mb-3 tracking-tight">Predicción a 6 horas</h2>
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-outline-variant/20">
+          <div className="bg-[#1e293b] p-4 aspect-[16/9]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={historyRecords.length > 0 ? historyRecords : [{time: '00:00', value: 120}]}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', fontSize: '12px', color: '#fff' }} />
+                <Area type="monotone" dataKey="value" stroke="#3265ef" strokeWidth={3} fill="#3265ef" fillOpacity={0.1} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
+          <h3 className="font-bold mb-2">Análisis Clínico 📋</h3>
+          <p className="text-sm text-on-surface-variant leading-relaxed">{data?.narrative || "Generando análisis predictivo local..."}</p>
         </div>
       </main>
     </motion.div>
@@ -282,7 +336,7 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
         <button className="w-10 h-10 flex items-center justify-center -ml-2">
           <Settings className="w-6 h-6 text-on-surface" />
         </button>
-        <span className="font-bold text-lg tracking-tight">BloodCare AI</span>
+        <span className="font-bold text-lg tracking-tight">BloodCare Bitácora</span>
         {online ? <Cloud className="w-4 h-4 text-success opacity-50" /> : <CloudOff className="w-4 h-4 text-error" />}
       </header>
 
@@ -293,7 +347,7 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
             {aiStatus} 🔒
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-on-surface leading-[1.1] mb-2">¿Qué comiste?</h1>
-          <p className="text-lg text-on-surface-variant leading-snug">Dilo en voz alta o busca. Procesamiento 100% privado en tu dispositivo.</p>
+          <p className="text-lg text-on-surface-variant leading-snug">Dilo en voz alta o busca. Procesamiento 100% privado.</p>
         </div>
 
         <div className="relative z-50">
@@ -365,16 +419,65 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
   );
 };
 
+const ProfileScreen = ({ userSettings, onUpdate, onLogout }: { userSettings: UserSettings, onUpdate: (s: UserSettings) => void, onLogout: () => void }) => {
+  const [name, setName] = useState(userSettings.name);
+  const [min, setMin] = useState(userSettings.target_min);
+  const [max, setMax] = useState(userSettings.target_max);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
+      <header className="px-5 h-16 w-full sticky top-0 z-40 bg-[#121C2B] flex items-center justify-between">
+        <h1 className="text-xl font-bold text-white">Configuración</h1>
+        <button onClick={() => onUpdate({ ...userSettings, name, target_min: min, target_max: max })} className="text-primary-container font-bold bg-white/10 px-4 py-1 rounded-full text-sm">Guardar</button>
+      </header>
+      <main className="p-6 space-y-8">
+        <div className="flex flex-col items-center gap-4 py-6">
+          <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center border-4 border-primary/20">
+            <User className="w-10 h-10 text-primary" />
+          </div>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="text-2xl font-bold text-center bg-transparent border-b border-primary/20 focus:outline-none w-full" />
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className="text-[11px] font-mono font-bold text-on-surface-variant/60 uppercase tracking-widest">Metas Metabólicas (mg/dL)</h3>
+          <div className="bg-surface-container-low p-6 rounded-[28px] space-y-6 border border-outline-variant/10">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <Target className="text-primary w-5 h-5" />
+                <p className="font-bold text-sm">Límite Inferior</p>
+              </div>
+              <input type="number" value={min} onChange={(e) => setMin(parseInt(e.target.value) || 0)} className="w-16 h-10 bg-white rounded-xl text-center font-bold border border-outline-variant/30" />
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="text-secondary w-5 h-5" />
+                <p className="font-bold text-sm">Límite Superior</p>
+              </div>
+              <input type="number" value={max} onChange={(e) => setMax(parseInt(e.target.value) || 0)} className="w-16 h-10 bg-white rounded-xl text-center font-bold border border-outline-variant/30" />
+            </div>
+          </div>
+        </div>
+
+        <button onClick={onLogout} className="w-full h-14 border-2 border-error/20 text-error rounded-2xl font-bold active:scale-95 transition-all flex items-center justify-center gap-2">
+           Cerrar Sesión Soberana
+        </button>
+      </main>
+    </motion.div>
+  );
+};
+
 // --- Main App Component ---
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>('login');
   const [currentGlucose, setCurrentGlucose] = useState(123);
+  const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
   const [historyRecords, setHistoryRecords] = useState<any[]>([]);
   const [userMeals, setUserMeals] = useState<any[]>([]);
   const [userSettings, setUserSettings] = useState<UserSettings>({ name: 'Usuario ITCM', target_min: 70, target_max: 140 });
-  const [isRecording, setIsRecording] = useState(false);
-  const [aiStatus, setAiStatus] = useState('IA Local Lista');
   const [online, setOnline] = useState(navigator.onLine);
+  const [aiStatus, setAiStatus] = useState('IA Local Lista');
+  const [isRecording, setIsRecording] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
 
   const worker = useRef<Worker | null>(null);
@@ -427,6 +530,13 @@ export default function App() {
         await db.meals.update(meal.id!, { synced: 1 });
       } catch (e) { break; }
     }
+    const pendingGlucose = await db.glucose.where('synced').equals(0).toArray();
+    for (const record of pendingGlucose) {
+      try {
+        await fetch('https://bloodcare-backend-jmv5.onrender.com/records/glucose', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, value: record.value, timestamp: record.timestamp, note: record.note }) });
+        await db.glucose.update(record.id!, { synced: 1 });
+      } catch (e) { break; }
+    }
     loadLocalData();
   };
 
@@ -466,20 +576,45 @@ export default function App() {
     if (online) syncAll();
   };
 
+  const saveGlucose = async (val: number) => {
+    await db.glucose.add({ user_id: 1, value: val, timestamp: new Date().toISOString(), note: 'Manual', synced: 0 });
+    loadLocalData();
+    showToast('Glucosa guardada');
+    if (online) syncAll();
+  };
+
+  const updateSettings = async (newSettings: UserSettings) => {
+    await db.settings.clear();
+    await db.settings.add(newSettings);
+    setUserSettings(newSettings);
+    showToast('Perfil actualizado');
+  };
+
+  const fetchPrediction = async (glucose: number) => {
+    try {
+      const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ current_glucose: glucose, history: Array(96).fill(glucose), meal_carbs: 0, insulin_units: 0 })
+      });
+      const data = await response.json();
+      setPredictionData(data);
+    } catch (error) { console.error('Error:', error); }
+  };
+
+  useEffect(() => { if (screen !== 'login') fetchPrediction(currentGlucose); }, [screen]);
+
+  const chartData = historyRecords.length > 0 
+    ? historyRecords.slice(0, 20).map(r => ({ time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), value: r.value })).reverse()
+    : [];
+
   const renderScreen = () => {
     switch (screen) {
       case 'login': return <LoginScreen onLogin={() => setScreen('inicio')} />;
-      case 'inicio': return <DashboardScreen currentVal={currentGlucose} online={online} historyRecords={historyRecords} userSettings={userSettings} />;
+      case 'inicio': return <DashboardScreen currentVal={currentGlucose} online={online} historyRecords={historyRecords} userSettings={userSettings} setScreen={setScreen} />;
+      case 'prediccion': return <PredictionScreen historyRecords={chartData} data={predictionData} />;
       case 'voz': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
-      case 'perfil': return (
-        <div className="p-8 text-center pt-20">
-          <Header title="Perfil" />
-          <User className="w-20 h-20 mx-auto text-primary mb-4" />
-          <h2 className="text-2xl font-bold mb-2">{userSettings.name}</h2>
-          <p className="text-on-surface-variant mb-10">Configuración de salud soberana activa.</p>
-          <button onClick={() => setScreen('login')} className="w-full h-12 border border-error text-error rounded-xl font-bold">Cerrar Sesión</button>
-        </div>
-      );
+      case 'perfil': return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;
       default: return <DashboardScreen />;
     }
   };

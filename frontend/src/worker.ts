@@ -124,7 +124,15 @@ self.onmessage = async (e) => {
       });
 
       const chatData = await chatResponse.json();
-      const aiResult = JSON.parse(chatData.choices[0].message.content);
+      
+      if (!chatData.choices || chatData.choices.length === 0) {
+        throw new Error('La IA no devolvió opciones de respuesta.');
+      }
+
+      const content = chatData.choices[0]?.message?.content;
+      if (!content) throw new Error('Contenido de respuesta vacío.');
+
+      const aiResult = JSON.parse(content);
 
       if (aiResult.is_food && aiResult.match) {
         if (aiResult.is_new) {

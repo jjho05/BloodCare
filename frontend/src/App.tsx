@@ -183,11 +183,11 @@ const PredictionScreen = ({ chartData, data }: { chartData: any[], data: Predict
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-outline-variant/20">
           <div className="bg-[#1e293b] p-4 aspect-[16/9]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart data={historyRecords.length > 0 ? historyRecords : [{time: '00:00', value: 120}]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                 <XAxis dataKey="time" stroke="#64748b" fontSize={10} />
                 <Tooltip />
-                <Area type="monotone" dataKey="pred" stroke="#3265ef" strokeWidth={3} fill="#3265ef" fillOpacity={0.1} />
+                <Area type="monotone" dataKey="value" stroke="#3265ef" strokeWidth={3} fill="#3265ef" fillOpacity={0.1} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -239,8 +239,42 @@ export default function App() {
   const [currentGlucose, setCurrentGlucose] = useState(123);
   const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
 
+  // Lógica de cableado con la API
+  const [historyRecords, setHistoryRecords] = useState([]);
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
+  const fetchRecords = async () => {
+    try {
+      const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/records/glucose?user_id=1');
+      const data = await response.json();
+      // Transformar para la gráfica
+      const formatted = data.map((r: any) => ({
+        time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        value: r.value
+      })).reverse();
+      setHistoryRecords(formatted);
+    } catch (error) { console.error('Error cargando historial:', error); }
+  };
+
+  const saveGlucose = async (val: number) => {
+    try {
+      await fetch('https://bloodcare-backend-jmv5.onrender.com/records/glucose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: 1, value: val, note: 'Registro manual' })
+      });
+      fetchRecords(); // Recargar gráfica
+    } catch (error) { console.error('Error guardando:', error); }
+  };
+
   const fetchPrediction = async (glucose: number) => {
     try {
+      // Guardar el registro actual antes de predecir
+      saveGlucose(glucose);
+      
       const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

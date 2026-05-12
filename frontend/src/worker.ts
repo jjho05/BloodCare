@@ -85,6 +85,11 @@ self.onmessage = async (e) => {
 
       if (!response.ok) throw new Error(`Groq API Error: ${response.status}`);
       const result = await response.json();
+      
+      if (!result || !result.text) {
+        throw new Error('No se pudo obtener texto del audio.');
+      }
+      
       const text = result.text.toLowerCase();
     
       // 1. Detección de Glucosa (Números) - Rápida

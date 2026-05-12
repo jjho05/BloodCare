@@ -47,7 +47,7 @@ export default function App() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    worker.current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+    worker.current = new Worker(new URL('./worker.ts?v=69.4', import.meta.url), { type: 'module' });
     worker.current.onmessage = (e) => {
       const { type, message, match, quantity, text, dataType, food } = e.data;
       if (type === 'status') setAiStatus(message);

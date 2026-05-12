@@ -128,3 +128,6 @@ npm run dev
 
 # El motor de desarrollo iniciará en el puerto 3005
 ```
+
+
+![BloodCare Impact](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTW87MkXJDBBKfiTWyMvDy89ejqPY-nbMtscw&s)

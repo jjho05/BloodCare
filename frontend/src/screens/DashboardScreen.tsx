@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { History, Mic, Droplet, ShieldCheck } from 'lucide-react';
+import { History, Mic, Droplet, ShieldCheck, Utensils } from 'lucide-react';
 import type { UserSettings } from '../db';
 import type { Screen } from '../types';
 import Header from '../components/layout/Header';
@@ -13,6 +13,7 @@ interface DashboardScreenProps {
   onManualGlucose: () => void;
   onVoiceStart: () => void;
   isRecording: boolean;
+  totalKcal: number;
 }
 
 const DashboardScreen = ({
@@ -117,6 +118,37 @@ const DashboardScreen = ({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Calories Card */}
+        <div className="bg-white premium-shadow p-6 rounded-[32px] border border-outline/10 overflow-hidden relative group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <Utensils className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest">Energía Hoy</p>
+                <p className="text-xl font-black text-on-surface">{totalKcal} <span className="text-xs opacity-30">kcal</span></p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[9px] font-black text-on-surface-variant/40 uppercase tracking-widest">Meta Diaria</p>
+              <p className="text-sm font-bold text-on-surface-variant/60">2,000 kcal</p>
+            </div>
+          </div>
+          
+          <div className="w-full h-3 bg-primary/5 rounded-full overflow-hidden">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min((totalKcal / 2000) * 100, 100)}%` }}
+              className={`h-full rounded-full ${totalKcal > 2000 ? 'bg-error' : 'grad-primary'}`}
+            ></motion.div>
+          </div>
+          {totalKcal > 2000 && (
+            <p className="text-[9px] font-bold text-error mt-2 uppercase tracking-widest">Límite diario superado</p>
+          )}
         </div>
 
         {/* Security Detail */}

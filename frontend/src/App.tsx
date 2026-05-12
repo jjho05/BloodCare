@@ -18,8 +18,6 @@ import ProfileScreen from './screens/ProfileScreen';
 
 const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.googleusercontent.com";
 
-// --- Main App Component ---
-
 export default function App() {
   const [screen, setScreen] = useState<Screen>('login');
   const [currentGlucose, setCurrentGlucose] = useState(123);
@@ -66,7 +64,6 @@ export default function App() {
             calorias_kcal: food.calorias_kcal * qty 
           };
           addManualMeal(learnedFood);
-          // Aprender para la próxima
           db.customFoods.add(food); 
           showToast(`¡Aprendido! ${food.nombre} (~${food.calorias_kcal} kcal) 🧠✅`);
           return;
@@ -144,20 +141,9 @@ export default function App() {
       recorder.onstop = async () => {
         setIsRecording(false);
         stream.getTracks().forEach(track => track.stop());
-
-        if (chunks.length === 0) {
-          showToast('No se captó audio', 'error');
-          return;
-        }
-
-        showToast('Transcribiendo con Groq... ⚡️', 'info');
+        if (chunks.length === 0) return;
         const audioBlob = new Blob(chunks, { type: mimeType });
-        
-        // Mandar el Blob directo al worker (Groq se encarga del resto)
-        worker.current?.postMessage({
-          type: 'transcribe',
-          audioBlob: audioBlob
-        });
+        worker.current?.postMessage({ type: 'transcribe', audioBlob });
       };
 
       recorder.start(250);
@@ -165,7 +151,6 @@ export default function App() {
       setIsRecording(true);
       showToast('Escuchando...', 'info');
 
-      // Detección de silencio (Inspirado en Olvera Suite / Master Code)
       const audioCtxLive = new (window.AudioContext || (window as any).webkitAudioContext)();
       const sourceLive = audioCtxLive.createMediaStreamSource(stream);
       const analyserNode = audioCtxLive.createAnalyser();
@@ -176,27 +161,16 @@ export default function App() {
       let silenceStart: number | null = null;
 
       const checkSilence = () => {
-        if (mediaRecorder.current?.state !== 'recording') {
-          audioCtxLive.close();
-          return;
-        }
+        if (mediaRecorder.current?.state !== 'recording') { audioCtxLive.close(); return; }
         analyserNode.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-
-        if (volume < 8) { // umbral de silencio
+        if (volume < 8) {
           if (!silenceStart) silenceStart = Date.now();
-          else if (Date.now() - silenceStart > 1500) {
-            audioCtxLive.close();
-            stopRecording();
-            return;
-          }
-        } else {
-          silenceStart = null;
-        }
+          else if (Date.now() - silenceStart > 1500) { audioCtxLive.close(); stopRecording(); return; }
+        } else { silenceStart = null; }
         animationFrame.current = requestAnimationFrame(checkSilence);
       };
       animationFrame.current = requestAnimationFrame(checkSilence);
-
     } catch (err) { showToast('Error de micro', 'error'); }
   };
 
@@ -248,6 +222,11 @@ export default function App() {
 
   const toggleRecording = isRecording ? stopRecording : startRecording;
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const totalKcalToday = userMeals
+    .filter(m => m.timestamp.startsWith(todayStr))
+    .reduce((sum, m) => sum + (m.calorias_kcal || m.kcal || 0), 0);
+
   const renderScreen = () => {
     switch (screen) {
       case 'login':
@@ -263,6 +242,7 @@ export default function App() {
             onManualGlucose={() => setShowManualGlucose(true)} 
             onVoiceStart={toggleRecording}
             isRecording={isRecording}
+            totalKcal={totalKcalToday}
           />
         );
       case 'prediccion':
@@ -284,7 +264,7 @@ export default function App() {
       case 'perfil':
         return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;
       default:
-        return <DashboardScreen currentVal={0} online={false} historyRecords={[]} userSettings={userSettings} setScreen={setScreen} onManualGlucose={() => {}} onVoiceStart={() => {}} isRecording={false} />;
+        return <DashboardScreen currentVal={0} online={false} historyRecords={[]} userSettings={userSettings} setScreen={setScreen} onManualGlucose={() => {}} onVoiceStart={() => {}} isRecording={false} totalKcal={0} />;
     }
   };
 

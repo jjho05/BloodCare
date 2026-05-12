@@ -82,8 +82,23 @@ self.onmessage = async (e) => {
       });
 
       if (!response.ok) throw new Error(`Groq API Error: ${response.status}`);
-      const data = await response.json();
-      const transcript = (data.text ?? '').trim().toLowerCase();
+      const result = await response.json();
+      const text = result.text.toLowerCase();
+    
+      // 1. Detección de Glucosa (Números)
+      const glucoseMatch = text.match(/\b(\d{2,3})\b/);
+      if (glucoseMatch && (text.includes('glucosa') || text.includes('tengo') || text.includes('nivel') || text.includes('azúcar') || glucoseMatch[0].length >= 2)) {
+        self.postMessage({ 
+          type: 'result', 
+          dataType: 'glucose', 
+          value: parseInt(glucoseMatch[1]),
+          text: text 
+        });
+        return;
+      }
+
+      // 2. Detección de Comida (Semántica)
+      const transcript = text;
       
       console.log('[Groq] Transcripción:', transcript);
 

@@ -227,8 +227,12 @@ const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSetti
               Predicción
             </button>
             <button onClick={() => setScreen('voz')} className="bg-white text-on-surface h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all border border-outline-variant/30">
-              <PlusCircle className="w-5 h-5" />
-              Registro
+              <Mic className="w-5 h-5" />
+              Comida
+            </button>
+            <button onClick={() => onManualGlucose()} className="bg-white text-error h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all border border-error/20">
+              <Droplet className="w-5 h-5 fill-current" />
+              Glucosa
             </button>
           </div>
           <div className="flex justify-center">
@@ -483,6 +487,8 @@ export default function App() {
   const [aiStatus, setAiStatus] = useState('IA Local Lista');
   const [isRecording, setIsRecording] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
+  const [pendingGlucose, setPendingGlucose] = useState<number | null>(null);
+  const [showManualGlucose, setShowManualGlucose] = useState(false);
 
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
@@ -502,6 +508,11 @@ export default function App() {
       const { type, message, match, quantity, text } = e.data;
       if (type === 'status') setAiStatus(message);
       if (type === 'result') {
+        if (e.data.dataType === 'glucose') {
+          setPendingGlucose(e.data.value);
+          showToast(`¿Tu glucosa es ${e.data.value} mg/dL?`, 'info');
+          return;
+        }
         if (match && match.score > 0.35) {
           const foodMatch = foodDictionary.diccionario.find(f => f.nombre === match.id);
           if (foodMatch) {
@@ -674,7 +685,7 @@ export default function App() {
   const renderScreen = () => {
     switch (screen) {
       case 'login': return <LoginScreen onLogin={() => setScreen('inicio')} />;
-      case 'inicio': return <DashboardScreen currentVal={currentGlucose} online={online} historyRecords={historyRecords} userSettings={userSettings} setScreen={setScreen} />;
+      case 'inicio': return <DashboardScreen currentVal={currentGlucose} online={online} historyRecords={historyRecords} userSettings={userSettings} setScreen={setScreen} onManualGlucose={() => setShowManualGlucose(true)} />;
       case 'prediccion': return <PredictionScreen historyRecords={chartData} data={predictionData} />;
       case 'voz': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
       case 'perfil': return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;
@@ -692,6 +703,58 @@ export default function App() {
           </div>
         </AnimatePresence>
         {screen !== 'login' && <Navbar currentScreen={screen} setScreen={setScreen} />}
+        
+        {/* Diálogo de Confirmación de Glucosa */}
+        <AnimatePresence>
+          {pendingGlucose && (
+            <motion.div initial={{ y: 200 }} animate={{ y: 0 }} exit={{ y: 200 }} className="fixed inset-x-0 bottom-0 z-[100] p-6">
+              <div className="bg-white rounded-[32px] p-8 shadow-2xl border border-zinc-100 flex flex-col items-center text-center space-y-6">
+                <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center text-error animate-pulse">
+                  <Droplet className="w-8 h-8 fill-current" />
+                </div>
+                <div>
+                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">Detectado por Voz</p>
+                  <h3 className="text-4xl font-black text-zinc-900">{pendingGlucose} <span className="text-lg font-medium opacity-30">mg/dL</span></h3>
+                </div>
+                <div className="flex gap-4 w-full">
+                  <button onClick={() => setPendingGlucose(null)} className="flex-1 h-14 rounded-2xl bg-zinc-100 text-zinc-500 font-bold active:scale-95 transition-all">Cancelar</button>
+                  <button onClick={() => { saveGlucose(pendingGlucose!); setPendingGlucose(null); }} className="flex-1 h-14 rounded-2xl bg-zinc-900 text-white font-bold active:scale-95 transition-all">Sí, Guardar</button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal de Glucosa Manual */}
+        <AnimatePresence>
+          {showManualGlucose && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-[40px] p-8 w-full max-w-xs shadow-2xl">
+                <h3 className="text-2xl font-bold mb-6 text-center">Registro Manual</h3>
+                <input 
+                  type="number" 
+                  autoFocus
+                  placeholder="000"
+                  className="w-full text-6xl font-black text-center mb-8 focus:outline-none placeholder:opacity-10"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = parseInt((e.target as HTMLInputElement).value);
+                      if (val > 0) { saveGlucose(val); setShowManualGlucose(false); }
+                    }
+                  }}
+                />
+                <div className="flex gap-3">
+                  <button onClick={() => setShowManualGlucose(false)} className="flex-1 h-12 rounded-xl font-bold text-zinc-400">Cerrar</button>
+                  <button onClick={() => {
+                    const input = document.querySelector('input[type="number"]') as HTMLInputElement;
+                    const val = parseInt(input.value);
+                    if (val > 0) { saveGlucose(val); setShowManualGlucose(false); }
+                  }} className="flex-1 h-12 bg-zinc-900 text-white rounded-xl font-bold">Guardar</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </GoogleOAuthProvider>
   );

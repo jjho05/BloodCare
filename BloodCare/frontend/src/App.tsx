@@ -829,66 +829,148 @@ export default function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="max-w-md mx-auto min-h-screen relative overflow-x-hidden bg-surface">
-        <AnimatePresence>{toast && <Toast message={toast.message} type={toast.type} />}</AnimatePresence>
-        <AnimatePresence mode="wait">
-          <div key={screen}>
-            {renderScreen()}
-          </div>
-        </AnimatePresence>
-        {screen !== 'login' && <Navbar currentScreen={screen} setScreen={setScreen} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} />}
-        
-        {/* Diálogo de Confirmación de Glucosa */}
-        <AnimatePresence>
-          {pendingGlucose && (
-            <motion.div initial={{ y: 200 }} animate={{ y: 0 }} exit={{ y: 200 }} className="fixed inset-x-0 bottom-0 z-[100] p-6">
-              <div className="bg-white rounded-[32px] p-8 shadow-2xl border border-zinc-100 flex flex-col items-center text-center space-y-6">
-                <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center text-error animate-pulse">
-                  <Droplet className="w-8 h-8 fill-current" />
+      {/* ── Wrapper global ──────────────────────────────────── */}
+      <div className="min-h-screen bg-[#0f172a] md:flex md:items-stretch">
+
+        {/* ── SIDEBAR (solo desktop) ──────────────────────── */}
+        {screen !== 'login' && (
+          <aside className="hidden md:flex flex-col justify-between w-64 min-h-screen bg-[#121C2B] border-r border-white/5 px-6 py-8 fixed left-0 top-0 bottom-0 z-40">
+            {/* Logo */}
+            <div>
+              <div className="flex items-center gap-3 mb-10">
+                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
+                  <Droplet className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">Detectado por Voz</p>
-                  <h3 className="text-4xl font-black text-zinc-900">{pendingGlucose} <span className="text-lg font-medium opacity-30">mg/dL</span></h3>
-                </div>
-                <div className="flex gap-4 w-full">
-                  <button onClick={() => setPendingGlucose(null)} className="flex-1 h-14 rounded-2xl bg-zinc-100 text-zinc-500 font-bold active:scale-95 transition-all">Cancelar</button>
-                  <button onClick={() => { saveGlucose(pendingGlucose!); setPendingGlucose(null); }} className="flex-1 h-14 rounded-2xl bg-zinc-900 text-white font-bold active:scale-95 transition-all">Sí, Guardar</button>
+                  <p className="text-white font-black text-lg tracking-tight">BloodCare</p>
+                  <p className="text-white/40 text-[10px] font-mono uppercase tracking-widest">AI Dashboard</p>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* Modal de Glucosa Manual */}
-        <AnimatePresence>
-          {showManualGlucose && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-[40px] p-8 w-full max-w-xs shadow-2xl">
-                <h3 className="text-2xl font-bold mb-6 text-center">Registro Manual</h3>
-                <input 
-                  type="number" 
-                  autoFocus
-                  placeholder="000"
-                  className="w-full text-6xl font-black text-center mb-8 focus:outline-none placeholder:opacity-10"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      const val = parseInt((e.target as HTMLInputElement).value);
-                      if (val > 0) { saveGlucose(val); setShowManualGlucose(false); }
-                    }
-                  }}
-                />
-                <div className="flex gap-3">
-                  <button onClick={() => setShowManualGlucose(false)} className="flex-1 h-12 rounded-xl font-bold text-zinc-400">Cerrar</button>
-                  <button onClick={() => {
-                    const input = document.querySelector('input[type="number"]') as HTMLInputElement;
-                    const val = parseInt(input.value);
-                    if (val > 0) { saveGlucose(val); setShowManualGlucose(false); }
-                  }} className="flex-1 h-12 bg-zinc-900 text-white rounded-xl font-bold">Guardar</button>
-                </div>
-              </motion.div>
+              {/* Nav items */}
+              <nav className="space-y-1">
+                {[
+                  { id: 'inicio', label: 'Dashboard', icon: Home },
+                  { id: 'prediccion', label: 'Predicción IA', icon: TrendingUp },
+                  { id: 'alimentos', label: 'Registro Comida', icon: Utensils },
+                  { id: 'glucemia', label: 'Historial', icon: History },
+                  { id: 'perfil', label: 'Configuración', icon: User },
+                ].map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setScreen(item.id as Screen)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
+                      screen === item.id
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        : 'text-white/50 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
             </div>
-          )}
-        </AnimatePresence>
+
+            {/* Estado y usuario al fondo del sidebar */}
+            <div className="space-y-4">
+              <div className="bg-white/5 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`w-2 h-2 rounded-full ${online ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                  <span className="text-white/60 text-xs font-mono font-bold uppercase tracking-widest">
+                    {online ? 'Sincronizado' : 'Sin conexión'}
+                  </span>
+                </div>
+                <p className="text-white font-bold">{userSettings.name}</p>
+                <p className="text-white/40 text-xs">Meta: {userSettings.target_min}–{userSettings.target_max} mg/dL</p>
+              </div>
+              <button
+                onClick={isRecording ? stopRecording : startRecording}
+                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${
+                  isRecording ? 'bg-red-500 animate-pulse text-white' : 'bg-primary text-white hover:bg-primary/90'
+                }`}
+              >
+                <Mic className="w-4 h-4" />
+                {isRecording ? 'Detener Grabación' : 'Dictar Alimento'}
+              </button>
+            </div>
+          </aside>
+        )}
+
+        {/* ── CONTENIDO PRINCIPAL ─────────────────────────── */}
+        <main className={`flex-1 flex ${screen !== 'login' ? 'md:ml-64' : ''} md:justify-center md:items-start md:bg-[#0f172a]`}>
+          {/* Vista de teléfono en desktop */}
+          <div className={`w-full ${
+            screen !== 'login'
+              ? 'md:max-w-[390px] md:min-h-screen md:shadow-2xl md:my-0'
+              : 'md:max-w-md md:my-8 md:rounded-3xl md:shadow-2xl md:overflow-hidden'
+          } max-w-md mx-auto min-h-screen relative overflow-x-hidden bg-surface`}>
+            <AnimatePresence>{toast && <Toast message={toast.message} type={toast.type} />}</AnimatePresence>
+            <AnimatePresence mode="wait">
+              <div key={screen}>
+                {renderScreen()}
+              </div>
+            </AnimatePresence>
+            {/* Navbar en móvil solamente */}
+            {screen !== 'login' && (
+              <div className="md:hidden">
+                <Navbar currentScreen={screen} setScreen={setScreen} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} />
+              </div>
+            )}
+
+            {/* Diálogo de Confirmación de Glucosa */}
+            <AnimatePresence>
+              {pendingGlucose && (
+                <motion.div initial={{ y: 200 }} animate={{ y: 0 }} exit={{ y: 200 }} className="fixed inset-x-0 bottom-0 z-[100] p-6">
+                  <div className="bg-white rounded-[32px] p-8 shadow-2xl border border-zinc-100 flex flex-col items-center text-center space-y-6">
+                    <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center text-error animate-pulse">
+                      <Droplet className="w-8 h-8 fill-current" />
+                    </div>
+                    <div>
+                      <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1">Detectado por Voz</p>
+                      <h3 className="text-4xl font-black text-zinc-900">{pendingGlucose} <span className="text-lg font-medium opacity-30">mg/dL</span></h3>
+                    </div>
+                    <div className="flex gap-4 w-full">
+                      <button onClick={() => setPendingGlucose(null)} className="flex-1 h-14 rounded-2xl bg-zinc-100 text-zinc-500 font-bold active:scale-95 transition-all">Cancelar</button>
+                      <button onClick={() => { saveGlucose(pendingGlucose!); setPendingGlucose(null); }} className="flex-1 h-14 rounded-2xl bg-zinc-900 text-white font-bold active:scale-95 transition-all">Sí, Guardar</button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Modal de Glucosa Manual */}
+            <AnimatePresence>
+              {showManualGlucose && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-[40px] p-8 w-full max-w-xs shadow-2xl">
+                    <h3 className="text-2xl font-bold mb-6 text-center">Registro Manual</h3>
+                    <input
+                      type="number"
+                      autoFocus
+                      placeholder="000"
+                      className="w-full text-6xl font-black text-center mb-8 focus:outline-none placeholder:opacity-10"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const val = parseInt((e.target as HTMLInputElement).value);
+                          if (val > 0) { saveGlucose(val); setShowManualGlucose(false); }
+                        }
+                      }}
+                    />
+                    <div className="flex gap-3">
+                      <button onClick={() => setShowManualGlucose(false)} className="flex-1 h-12 rounded-xl font-bold text-zinc-400">Cerrar</button>
+                      <button onClick={() => {
+                        const input = document.querySelector('input[type="number"]') as HTMLInputElement;
+                        const val = parseInt(input.value);
+                        if (val > 0) { saveGlucose(val); setShowManualGlucose(false); }
+                      }} className="flex-1 h-12 bg-zinc-900 text-white rounded-xl font-bold">Guardar</button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+        </main>
       </div>
     </GoogleOAuthProvider>
   );

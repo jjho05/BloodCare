@@ -557,13 +557,15 @@ export default function App() {
       const chunks: Blob[] = [];
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = async () => {
+        setIsRecording(false);
+        showToast('Procesando audio... 🧠', 'info');
         const blob = new Blob(chunks, { type: 'audio/wav' });
-        const audioCtx = new AudioContext({ sampleRate: 16000 });
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         const arrayBuffer = await blob.arrayBuffer();
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         const float32Data = audioBuffer.getChannelData(0);
         worker.current?.postMessage({ type: 'transcribe', audio: float32Data });
-        audioCtx.close();
+        await audioCtx.close();
       };
       recorder.start();
       mediaRecorder.current = recorder;

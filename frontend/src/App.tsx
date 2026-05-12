@@ -592,14 +592,32 @@ export default function App() {
         if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
         if (silenceTimer.current) clearTimeout(silenceTimer.current);
         setIsRecording(false);
-        showToast('Procesando audio... 🧠', 'info');
+        showToast('Analizando audio... 🧠', 'info');
+        
         const blob = new Blob(chunks, { type: 'audio/wav' });
-        const resampleCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         const arrayBuffer = await blob.arrayBuffer();
-        const audioBuffer = await resampleCtx.decodeAudioData(arrayBuffer);
-        const float32Data = audioBuffer.getChannelData(0);
+        
+        // Pipeline de Resampleo Profesional
+        const tempCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const decodedBuffer = await tempCtx.decodeAudioData(arrayBuffer);
+        
+        const offlineCtx = new OfflineAudioContext(
+          decodedBuffer.numberOfChannels,
+          decodedBuffer.duration * 16000,
+          16000
+        );
+        
+        const source = offlineCtx.createBufferSource();
+        source.buffer = decodedBuffer;
+        source.connect(offlineCtx.destination);
+        source.start();
+        
+        const resampledBuffer = await offlineCtx.startRendering();
+        const float32Data = resampledBuffer.getChannelData(0);
+        
+        // Enviar a la IA
         worker.current?.postMessage({ type: 'transcribe', audio: float32Data });
-        await resampleCtx.close();
+        await tempCtx.close();
         if (audioContext.current) { audioContext.current.close(); audioContext.current = null; }
       };
       recorder.start();

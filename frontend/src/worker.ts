@@ -71,11 +71,11 @@ self.onmessage = async (e) => {
       if (!transcriber) await init();
       
       const output = await transcriber(audio, { 
-        language: 'spanish', 
+        language: 'es', 
         task: 'transcribe',
         chunk_length_s: 30,
         stride_length_s: 5,
-        prompt: "BloodCare AI. Monitoreo de glucosa y diabetes. Comidas mexicanas, carbohidratos, mg/dL. Tacos, chilaquiles, tamales, glucosa alta, insulina."
+        prompt: "Comida, diabetes, glucosa, registro."
       });
       
       const transcript = output.text.trim();

@@ -502,7 +502,8 @@ export default function App() {
             showToast(`¡Detectado! ${qty > 1 ? qty + 'x ' : ''}${foodMatch.nombre} ✅`);
           }
         } else {
-          showToast(`No entendí "${text || 'eso'}", ¿puedes repetir? 🧐`, 'error');
+          const heardText = text ? `"${text}"` : "nada";
+          showToast(`Escuché ${heardText}, pero no sé qué comida es. 🤔`, 'info');
         }
       }
     };

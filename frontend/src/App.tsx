@@ -129,6 +129,7 @@ export default function App() {
   const [screen, setScreen] = useState('login');
   const [currentGlucose, setCurrentGlucose] = useState(123);
   const [userMeals, setUserMeals] = useState<any[]>([]);
+  const [historyRecords, setHistoryRecords] = useState<any[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [aiStatus, setAiStatus] = useState('Modo Offline Activo');
   const [toast, setToast] = useState<{message: string, type: 'success' | 'info' | 'error'} | null>(null);
@@ -164,7 +165,9 @@ export default function App() {
 
   const loadLocalData = async () => {
     const localMeals = await db.meals.toArray();
+    const localGlucose = await db.glucose.toArray();
     setUserMeals(localMeals.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    setHistoryRecords(localGlucose.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
   };
 
   const syncAll = async () => {

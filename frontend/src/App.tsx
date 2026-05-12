@@ -276,18 +276,6 @@ const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSetti
           </div>
         </div>
 
-        {/* AI Insight */}
-        <div className="bg-[#EEF2FF] p-5 rounded-2xl border border-primary/5 flex gap-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Brain className="text-primary w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="font-bold text-primary mb-1">Análisis BloodCare IA</h3>
-            <p className="text-sm text-on-surface-variant leading-relaxed">
-              Sistema de sincronización <span className="font-semibold text-primary">Soberana</span> optimizado para el ITCM.
-            </p>
-          </div>
-        </div>
 
         {/* Security Detail */}
         <div className="bg-white ios-card-shadow p-5 rounded-2xl border border-outline-variant/30 flex items-center justify-between">
@@ -321,10 +309,6 @@ const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], dat
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
-          <h3 className="font-bold mb-2">Análisis Clínico 📋</h3>
-          <p className="text-sm text-on-surface-variant leading-relaxed">{data?.narrative || "Generando análisis predictivo local..."}</p>
         </div>
       </main>
     </motion.div>

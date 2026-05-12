@@ -17,7 +17,8 @@ import {
   TrendingUp,
   Activity,
   History,
-  Lock
+  Lock,
+  Plus
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -27,6 +28,8 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
+
+import foodDictionary from './data/food_dictionary.json';
 
 const GOOGLE_CLIENT_ID = "1058750211058-22740igvp11f42lh4113mlir39dtqa9r.apps.googleusercontent.com";
 
@@ -49,10 +52,7 @@ const Header = ({ title }: { title: string }) => (
       <span className="font-bold text-xl tracking-tight text-on-surface">{title}</span>
     </div>
     <div className="flex items-center gap-4">
-      <div className="relative">
-        <Bell className="w-6 h-6 text-on-surface-variant" />
-        <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
-      </div>
+      <Bell className="w-6 h-6 text-on-surface-variant" />
       <div className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
         <UserIcon className="w-5 h-5 text-on-surface-variant" />
       </div>
@@ -154,36 +154,79 @@ const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], dat
   </motion.div>
 );
 
-const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart }: { userMeals: any[], onImageUpload: (f: File) => void, onVoiceStart: () => void }) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
-    <header className="flex items-center justify-between px-5 h-14 w-full sticky top-0 z-40 bg-white/80 ios-blur">
-      <Settings className="w-6 h-6 text-on-surface" /><span className="font-bold text-lg tracking-tight">BloodCare Bitácora</span><div className="w-10 h-10"></div>
-    </header>
-    <main className="p-5 space-y-8">
-      <div>
-        <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" />Procesado por Gemini 3 🔒</div>
-        <h1 className="text-4xl font-bold text-on-surface mb-2">¿Qué comiste?</h1>
-        <p className="text-lg text-on-surface-variant">Sube una foto o habla. La IA hará el resto.</p>
-      </div>
-      <div className="space-y-4">
-        <h3 className="font-bold text-on-surface-variant/60 text-xs uppercase tracking-widest">Registros Recientes</h3>
-        {userMeals.length > 0 ? userMeals.map((log: any) => (
-          <div key={log.id} className="w-full flex items-center justify-between p-4 bg-surface-container-low rounded-[20px] border border-outline-variant/10">
-            <div className="flex items-center gap-4"><div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm"><Utensils className="w-6 h-6" /></div>
-            <div><h4 className="font-bold text-lg">{log.food_name}</h4><p className="text-xs opacity-60">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div></div>
-            <span className="text-lg font-bold text-primary">{log.carbs_g}g</span>
+const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, onAddManual }: { userMeals: any[], onImageUpload: (f: File) => void, onVoiceStart: () => void, onAddManual: (m: any) => void }) => {
+  const [query, setQuery] = useState('');
+  const results = query.length > 2 ? foodDictionary.diccionario.filter(f => 
+    f.nombre.toLowerCase().includes(query.toLowerCase()) || 
+    f.alias.some(a => a.toLowerCase().includes(query.toLowerCase()))
+  ).slice(0, 5) : [];
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
+      <header className="flex items-center justify-between px-5 h-14 w-full sticky top-0 z-40 bg-white/80 ios-blur">
+        <Settings className="w-6 h-6 text-on-surface" /><span className="font-bold text-lg tracking-tight">Bitácora Soberana</span><div className="w-10 h-10"></div>
+      </header>
+      <main className="p-5 space-y-8">
+        <div>
+          <div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" />Modo Offline Activo 🔒</div>
+          <h1 className="text-4xl font-bold text-on-surface mb-2">¿Qué comiste?</h1>
+          <p className="text-lg text-on-surface-variant">Busca entre tus 150 platillos instantáneamente.</p>
+        </div>
+
+        <div className="relative z-50">
+          <div className="relative">
+            <input 
+              type="text" 
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Escribe para buscar..."
+              className="w-full h-14 bg-surface-container-low rounded-2xl px-5 border border-outline-variant/20 focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface"
+            />
+            <Search className="absolute right-4 top-4 text-on-surface-variant/40" />
           </div>
-        )) : <div className="text-center py-10 opacity-40"><History className="w-12 h-12 mx-auto mb-2" /><p className="text-sm">No hay comidas hoy</p></div>}
+          
+          {results.length > 0 && (
+            <div className="absolute top-16 left-0 right-0 bg-white border border-outline-variant/20 rounded-2xl shadow-2xl overflow-hidden z-50">
+              {results.map((f, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => { onAddManual(f); setQuery(''); }}
+                  className="w-full p-4 text-left hover:bg-primary/5 flex items-center justify-between border-b border-outline-variant/10 last:border-0"
+                >
+                  <div>
+                    <p className="font-bold">{f.nombre}</p>
+                    <p className="text-xs opacity-50">{f.porcion}</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-primary">
+                    <span className="font-bold">{f.carbs_g}g</span>
+                    <Plus className="w-4 h-4" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="font-bold text-on-surface-variant/60 text-xs uppercase tracking-widest">Registros Recientes</h3>
+          {userMeals.length > 0 ? userMeals.map((log: any) => (
+            <div key={log.id} className="w-full flex items-center justify-between p-4 bg-surface-container-low rounded-[20px] border border-outline-variant/10">
+              <div className="flex items-center gap-4"><div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm"><Utensils className="w-6 h-6" /></div>
+              <div><h4 className="font-bold text-lg">{log.food_name}</h4><p className="text-xs opacity-60">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div></div>
+              <span className="text-lg font-bold text-primary">{log.carbs_g}g</span>
+            </div>
+          )) : <div className="text-center py-10 opacity-40"><History className="w-12 h-12 mx-auto mb-2" /><p className="text-sm">No hay comidas hoy</p></div>}
+        </div>
+      </main>
+      <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-3">
+        <label className="bg-secondary text-white rounded-full w-14 h-14 flex items-center justify-center shadow-xl cursor-pointer active:scale-95 transition-all">
+          <Activity className="w-6 h-6" /><input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files && onImageUpload(e.target.files[0])} />
+        </label>
+        <button onClick={onVoiceStart} className="bg-primary text-white rounded-full w-20 h-20 flex items-center justify-center shadow-2xl active:scale-95 transition-all"><Mic className="w-10 h-10" /></button>
       </div>
-    </main>
-    <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-3">
-      <label className="bg-secondary text-white rounded-full w-14 h-14 flex items-center justify-center shadow-xl cursor-pointer active:scale-95 transition-all">
-        <Search className="w-6 h-6" /><input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files && onImageUpload(e.target.files[0])} />
-      </label>
-      <button onClick={onVoiceStart} className="bg-primary text-white rounded-full w-20 h-20 flex items-center justify-center shadow-2xl active:scale-95 transition-all"><Mic className="w-10 h-10" /></button>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 export default function App() {
   const [screen, setScreen] = useState('login');
@@ -207,13 +250,24 @@ export default function App() {
     } catch (error) { console.error(error); }
   };
 
+  const addManualMeal = async (food: any) => {
+    try {
+      await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ user_id: 1, food_name: food.nombre, carbs_g: food.carbs_g }) 
+      });
+      fetchMeals();
+    } catch (err) { console.error(err); }
+  };
+
   const handleImageUpload = async (file: File) => {
     try {
       const formData = new FormData(); formData.append('file', file);
       const res = await fetch('https://bloodcare-backend-jmv5.onrender.com/vision/analyze', { method: 'POST', body: formData });
       const result = await res.json();
       await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: result.dish, carbs_g: result.detected_carbs }) });
-      fetchMeals(); alert(`IA detectó: ${result.dish} (${result.detected_carbs}g)`);
+      fetchMeals();
     } catch (error) { console.error(error); }
   };
 
@@ -227,7 +281,7 @@ export default function App() {
         const res = await fetch(`https://bloodcare-backend-jmv5.onrender.com/vision/analyze-text?query=${encodeURIComponent(query)}`, { method: 'POST' });
         const result = await res.json();
         await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, food_name: result.dish, carbs_g: result.detected_carbs }) });
-        fetchMeals(); alert(`Escuchado: "${query}" -> ${result.dish} (${result.detected_carbs}g)`);
+        fetchMeals();
       } catch (err) { console.error(err); }
     };
   };
@@ -242,7 +296,7 @@ export default function App() {
             {screen === 'login' && <LoginScreen onLoginSuccess={() => setScreen('inicio')} />}
             {screen === 'inicio' && <DashboardScreen data={predictionData} currentVal={currentGlucose} />}
             {screen === 'prediccion' && <PredictionScreen historyRecords={historyRecords} data={predictionData} />}
-            {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onImageUpload={handleImageUpload} onVoiceStart={startVoiceRecognition} />}
+            {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onImageUpload={handleImageUpload} onVoiceStart={startVoiceRecognition} onAddManual={addManualMeal} />}
             {screen === 'perfil' && <div className="p-10 text-center">Perfil de Usuario</div>}
           </div>
         </AnimatePresence>

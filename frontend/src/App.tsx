@@ -235,6 +235,11 @@ export default function App() {
     } catch (error) { console.error('Error:', error); }
   };
 
+  const analyzeText = (text: string) => {
+    if (!text.trim()) return;
+    worker.current?.postMessage({ type: 'analyze_text', text });
+  };
+
   useEffect(() => { if (screen !== 'login') fetchPrediction(currentGlucose); }, [screen]);
 
   const chartData = historyRecords.length > 0 
@@ -269,6 +274,7 @@ export default function App() {
             onVoiceStart={toggleRecording}
             isRecording={isRecording}
             onAddManual={addManualMeal}
+            onTextSubmit={analyzeText}
             aiStatus={aiStatus}
             online={online}
           />

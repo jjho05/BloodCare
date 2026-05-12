@@ -8,11 +8,12 @@ interface VoiceLogScreenProps {
   onVoiceStart: () => void;
   isRecording: boolean;
   onAddManual: (food: any) => void;
+  onTextSubmit?: (query: string) => void;
   aiStatus: string;
   online: boolean;
 }
 
-const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiStatus, online }: VoiceLogScreenProps) => {
+const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, onTextSubmit, aiStatus, online }: VoiceLogScreenProps) => {
   const [query, setQuery] = useState('');
   const results =
     query.length > 2
@@ -24,6 +25,13 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
           )
           .slice(0, 5)
       : [];
+
+  const handleSearchSubmit = () => {
+    if (query.trim()) {
+      onTextSubmit?.(query);
+      setQuery('');
+    }
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-surface min-h-screen">
@@ -44,13 +52,24 @@ const VoiceLogScreen = ({ userMeals, onVoiceStart, isRecording, onAddManual, aiS
         </div>
 
         <div className="relative z-50">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Escribe aquí para buscar..."
-            className="w-full h-16 bg-white rounded-3xl px-6 focus:outline-none focus:ring-4 focus:ring-primary/10 premium-shadow border border-outline/5 transition-all"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearchSubmit();
+              }}
+              placeholder="Escribe aquí para buscar..."
+              className="flex-1 h-16 bg-white rounded-3xl px-6 focus:outline-none focus:ring-4 focus:ring-primary/10 premium-shadow border border-outline/5 transition-all"
+            />
+            <button
+              onClick={handleSearchSubmit}
+              className="w-16 h-16 bg-primary rounded-3xl flex items-center justify-center text-white shadow-lg shadow-primary/20 active:scale-90 transition-all"
+            >
+              <Plus className="w-8 h-8" />
+            </button>
+          </div>
           {results.length > 0 && (
             <div className="absolute top-20 left-0 right-0 bg-white/90 ios-blur rounded-[32px] shadow-2xl overflow-hidden border border-outline/10">
               {results.map((f, i) => (

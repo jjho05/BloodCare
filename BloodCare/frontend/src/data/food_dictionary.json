@@ -1,26 +1,307 @@
 {
   "version": "1.1",
-  "descripcion": "Diccionario local BloodCare - Modo Offline",
+  "descripcion": "Diccionario multimodal de carbohidratos con mapeo de sinónimos - BloodCare",
   "diccionario": [
-    { "nombre": "Taco al pastor", "alias": ["pastor", "taco de adobada", "trompo"], "carbohidratos_g": 18, "porcion": "1 pieza", "categoria": "Tacos y Antojitos" },
-    { "nombre": "Menudo", "alias": ["pancita", "mondongo", "caldo de panza"], "carbohidratos_g": 21, "porcion": "1 plato (300ml)", "categoria": "Sopas y Caldos" },
-    { "nombre": "Guajolota", "alias": ["torta de tamal", "guajolocombo"], "carbohidratos_g": 85, "porcion": "1 pieza", "categoria": "Tortas y Lonches" },
-    { "nombre": "Tamal oaxaqueño", "alias": ["tamal de hoja de platano", "oaxaqueño"], "carbohidratos_g": 48, "porcion": "1 pieza", "categoria": "Tamales" },
-    { "nombre": "Chilaquiles", "alias": ["chilaquiles verdes", "chilaquiles rojos", "chilaquiles con huevo"], "carbohidratos_g": 45, "porcion": "1 plato (80g totopos)", "categoria": "Desayunos" },
-    { "nombre": "Quesadilla de comal", "alias": ["queta", "quesadilla de queso", "quesadilla de masa"], "carbohidratos_g": 16, "porcion": "1 pieza", "categoria": "Tacos y Antojitos" },
-    { "nombre": "Mole poblano", "alias": ["mole con pollo", "pollo en mole"], "carbohidratos_g": 65, "porcion": "1 plato con arroz", "categoria": "Platos Fuertes" },
-    { "nombre": "Cochinita pibil", "alias": ["tacos de cochinita", "panuchos", "salbutes"], "carbohidratos_g": 40, "porcion": "3 piezas", "categoria": "Platos Fuertes" },
-    { "nombre": "Pozole", "alias": ["pozole rojo", "pozole blanco", "pozole verde"], "carbohidratos_g": 34, "porcion": "1 plato mediano", "categoria": "Sopas y Caldos" },
-    { "nombre": "Pambazo", "alias": ["pambazo de papa con chorizo"], "carbohidratos_g": 65, "porcion": "1 pieza", "categoria": "Tortas y Lonches" },
-    { "nombre": "Enfrijoladas", "alias": ["tortillas con frijol"], "carbohidratos_g": 52, "porcion": "3 piezas", "categoria": "Desayunos" },
-    { "nombre": "Esquites", "alias": ["trolelobus", "elote en vaso", "chaska"], "carbohidratos_g": 32, "porcion": "1 vaso (200ml)", "categoria": "Antojitos" },
-    { "nombre": "Torta ahogada", "alias": ["torta de jalisco", "ahogada"], "carbohidratos_g": 55, "porcion": "1 pieza", "categoria": "Tortas y Lonches" },
-    { "nombre": "Chile en nogada", "alias": ["chile patrio"], "carbohidratos_g": 88, "porcion": "1 pieza", "categoria": "Platos Fuertes" },
-    { "nombre": "Tlacoyo", "alias": ["tlacoyo de haba", "tlacoyo de frijol", "tlacoyo de requeson"], "carbohidratos_g": 32, "porcion": "1 pieza", "categoria": "Tacos y Antojitos" },
-    { "nombre": "Agua de horchata", "alias": ["horchata", "agua de arroz"], "carbohidratos_g": 30, "porcion": "1 vaso (250ml)", "categoria": "Bebidas" },
-    { "nombre": "Champurrado", "alias": ["atole de chocolate"], "carbohidratos_g": 38, "porcion": "1 taza", "categoria": "Bebidas" },
-    { "nombre": "Arroz con leche", "alias": ["postre de arroz"], "carbohidratos_g": 48, "porcion": "1 taza", "categoria": "Postres" },
-    { "nombre": "Tacos de canasta", "alias": ["tacos sudados", "tacos de la bicicleta"], "carbohidratos_g": 15, "porcion": "1 pieza", "categoria": "Tacos y Antojitos" },
-    { "nombre": "Barbacoa", "alias": ["consome y tacos de barbacoa", "tacos de oveja"], "carbohidratos_g": 15, "porcion": "1 taco", "categoria": "Tacos y Antojitos" }
+    {
+      "nombre": "Taco al pastor",
+      "alias": ["pastor", "taco de adobada", "trompo"],
+      "carbohidratos_g": 18,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Menudo",
+      "alias": ["pancita", "mondongo", "caldo de panza"],
+      "carbohidratos_g": 21,
+      "porcion": "1 plato (300ml)",
+      "categoria": "Sopas y Caldos"
+    },
+    {
+      "nombre": "Guajolota",
+      "alias": ["torta de tamal", "guajolocombo"],
+      "carbohidratos_g": 85,
+      "porcion": "1 pieza",
+      "categoria": "Tortas y Lonches"
+    },
+    {
+      "nombre": "Tamal oaxaqueño",
+      "alias": ["tamal de hoja de platano", "oaxaqueño"],
+      "carbohidratos_g": 48,
+      "porcion": "1 pieza",
+      "categoria": "Tamales"
+    },
+    {
+      "nombre": "Chilaquiles",
+      "alias": ["chilaquiles verdes", "chilaquiles rojos", "chilaquiles con huevo"],
+      "carbohidratos_g": 45,
+      "porcion": "1 plato (80g totopos)",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Quesadilla de comal",
+      "alias": ["queta", "quesadilla de queso", "quesadilla de masa"],
+      "carbohidratos_g": 16,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Mole poblano",
+      "alias": ["mole con pollo", "pollo en mole"],
+      "carbohidratos_g": 65,
+      "porcion": "1 plato con arroz",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Cochinita pibil",
+      "alias": ["tacos de cochinita", "panuchos", "salbutes"],
+      "carbohidratos_g": 40,
+      "porcion": "3 piezas",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Pozole",
+      "alias": ["pozole rojo", "pozole blanco", "pozole verde"],
+      "carbohidratos_g": 34,
+      "porcion": "1 plato mediano",
+      "categoria": "Sopas y Caldos"
+    },
+    {
+      "nombre": "Pambazo",
+      "alias": ["pambazo de papa con chorizo"],
+      "carbohidratos_g": 65,
+      "porcion": "1 pieza",
+      "categoria": "Tortas y Lonches"
+    },
+    {
+      "nombre": "Enfrijoladas",
+      "alias": ["tortillas con frijol"],
+      "carbohidratos_g": 52,
+      "porcion": "3 piezas",
+      "categoria": "Desayunos"
+    },
+    {
+      "nombre": "Esquites",
+      "alias": ["trolelobus", "elote en vaso", "chaska"],
+      "carbohidratos_g": 32,
+      "porcion": "1 vaso (200ml)",
+      "categoria": "Antojitos"
+    },
+    {
+      "nombre": "Torta ahogada",
+      "alias": ["torta de jalisco", "ahogada"],
+      "carbohidratos_g": 55,
+      "porcion": "1 pieza",
+      "categoria": "Tortas y Lonches"
+    },
+    {
+      "nombre": "Chile en nogada",
+      "alias": ["chile patrio"],
+      "carbohidratos_g": 88,
+      "porcion": "1 pieza",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Tlacoyo",
+      "alias": ["tlacoyo de haba", "tlacoyo de frijol", "tlacoyo de requeson"],
+      "carbohidratos_g": 32,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Agua de horchata",
+      "alias": ["horchata", "agua de arroz"],
+      "carbohidratos_g": 30,
+      "porcion": "1 vaso (250ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Champurrado",
+      "alias": ["atole de chocolate"],
+      "carbohidratos_g": 38,
+      "porcion": "1 taza",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Arroz con leche",
+      "alias": ["postre de arroz"],
+      "carbohidratos_g": 48,
+      "porcion": "1 taza",
+      "categoria": "Postres"
+    },
+    {
+      "nombre": "Tacos de canasta",
+      "alias": ["tacos sudados", "tacos de la bicicleta"],
+      "carbohidratos_g": 15,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Barbacoa",
+      "alias": ["consome y tacos de barbacoa", "tacos de oveja"],
+      "carbohidratos_g": 15,
+      "porcion": "1 taco",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Enchiladas",
+      "alias": ["enchiladas verdes", "enchiladas rojas", "enchiladas suizas", "enchiladas potosinas"],
+      "carbohidratos_g": 40,
+      "porcion": "3 piezas",
+      "categoria": "Platos Fuertes"
+    },
+    {
+      "nombre": "Sope",
+      "alias": ["sopes", "pellizcadas", "picaditas"],
+      "carbohidratos_g": 25,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Flautas",
+      "alias": ["tacos dorados", "flautas de pollo", "flautas de carne"],
+      "carbohidratos_g": 35,
+      "porcion": "3 piezas",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Gordita",
+      "alias": ["gordita de chicharron", "gorditas rellenas", "arepas mexicanas"],
+      "carbohidratos_g": 30,
+      "porcion": "1 pieza",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Carnitas",
+      "alias": ["tacos de carnitas", "maciza", "cueritos", "buche"],
+      "carbohidratos_g": 16,
+      "porcion": "1 taco",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Birria",
+      "alias": ["quesabirria", "caldo de birria", "tacos de birria"],
+      "carbohidratos_g": 18,
+      "porcion": "1 taco",
+      "categoria": "Tacos y Antojitos"
+    },
+    {
+      "nombre": "Frijoles de la olla",
+      "alias": ["frijoles charros", "frijoles puercos", "frijoles refritos"],
+      "carbohidratos_g": 20,
+      "porcion": "1/2 taza (100g)",
+      "categoria": "Guarniciones"
+    },
+    {
+      "nombre": "Flan napolitano",
+      "alias": ["flan", "queso napolitano"],
+      "carbohidratos_g": 45,
+      "porcion": "1 rebanada",
+      "categoria": "Postres"
+    },
+    {
+      "nombre": "Churros",
+      "alias": ["churros con azucar", "churros rellenos"],
+      "carbohidratos_g": 40,
+      "porcion": "3 piezas",
+      "categoria": "Postres"
+    },
+    {
+      "nombre": "Pan dulce (Concha)",
+      "alias": ["concha", "pan de dulce", "bizcocho"],
+      "carbohidratos_g": 42,
+      "porcion": "1 pieza",
+      "categoria": "Postres y Panaderia"
+    },
+    {
+      "nombre": "Pan de muerto",
+      "alias": ["hojaldra", "pan de festividad"],
+      "carbohidratos_g": 50,
+      "porcion": "1 pieza mediana",
+      "categoria": "Postres y Panaderia"
+    },
+    {
+      "nombre": "Cerveza clara",
+      "alias": ["chela", "cheve", "cerveza rubia", "corona", "victoria", "modelo"],
+      "carbohidratos_g": 13,
+      "porcion": "1 lata (355ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Cerveza oscura",
+      "alias": ["negra modelo", "indio", "bohemia oscura", "chela oscura"],
+      "carbohidratos_g": 16,
+      "porcion": "1 lata (355ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Michelada",
+      "alias": ["michelada con clamato", "gomichela", "cubana"],
+      "carbohidratos_g": 20,
+      "porcion": "1 vaso (500ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Tequila",
+      "alias": ["caballito de tequila", "shot de tequila", "tequila blanco", "tequila reposado"],
+      "carbohidratos_g": 0,
+      "porcion": "1 caballito (45ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Mezcal",
+      "alias": ["shot de mezcal", "caballito de mezcal"],
+      "carbohidratos_g": 0,
+      "porcion": "1 caballito (45ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Paloma",
+      "alias": ["tequila con squirt", "paloma de tequila"],
+      "carbohidratos_g": 28,
+      "porcion": "1 vaso (300ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Margarita",
+      "alias": ["margarita de limon", "margarita frappe"],
+      "carbohidratos_g": 35,
+      "porcion": "1 copa (250ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Pulque",
+      "alias": ["pulque curado", "pulque natural", "tlachique"],
+      "carbohidratos_g": 25,
+      "porcion": "1 jarrito (300ml)",
+      "categoria": "Bebidas Alcohólicas"
+    },
+    {
+      "nombre": "Agua de jamaica",
+      "alias": ["jamaica", "agua fresca de jamaica"],
+      "carbohidratos_g": 22,
+      "porcion": "1 vaso (250ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Agua de tamarindo",
+      "alias": ["tamarindo", "agua fresca de tamarindo"],
+      "carbohidratos_g": 25,
+      "porcion": "1 vaso (250ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Café de olla",
+      "alias": ["cafe con piloncillo", "cafe canela"],
+      "carbohidratos_g": 18,
+      "porcion": "1 taza (240ml)",
+      "categoria": "Bebidas"
+    },
+    {
+      "nombre": "Refresco de cola",
+      "alias": ["coca", "coca cola", "pepsi", "soda"],
+      "carbohidratos_g": 39,
+      "porcion": "1 lata (355ml)",
+      "categoria": "Bebidas"
+    }
   ]
 }

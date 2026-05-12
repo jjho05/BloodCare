@@ -72,7 +72,7 @@ export default function App() {
           return;
         }
 
-        if (match && match.score > 0.35) {
+        if (match && match.score > 0.25) {
           const foodMatch = foodDictionary.diccionario.find(f => f.nombre === match.id);
           if (foodMatch) {
             const qty = quantity || 1;

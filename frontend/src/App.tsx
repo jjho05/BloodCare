@@ -56,12 +56,31 @@ const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => (
   </motion.div>
 );
 
-const DashboardScreen = ({ data, currentVal, onSave, online }: any) => {
+const DashboardScreen = ({ data, currentVal, onSave, online, historyRecords, userMeals }: any) => {
   const [val, setVal] = useState(currentVal);
+  const avg = historyRecords.length > 0 ? Math.round(historyRecords.reduce((a:any, b:any) => a + b.value, 0) / historyRecords.length) : 0;
+  const totalCarbs = userMeals.reduce((a:any, b:any) => a + b.carbs_g, 0);
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
       <Header title="BloodCare" online={online} />
       <main className="px-5 pt-8 space-y-6">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-5 rounded-3xl ios-card-shadow border border-outline-variant/10">
+            <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Promedio Hoy</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl font-bold text-on-surface">{avg}</span>
+              <span className="text-[10px] opacity-40">mg/dL</span>
+            </div>
+          </div>
+          <div className="bg-white p-5 rounded-3xl ios-card-shadow border border-outline-variant/10">
+            <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Total Carbs</span>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl font-bold text-primary">{totalCarbs}</span>
+              <span className="text-[10px] opacity-40">g</span>
+            </div>
+          </div>
+        </div>
         <div className="bg-white ios-card-shadow p-8 rounded-[32px] border border-outline-variant/20 flex flex-col items-center text-center">
           <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">REGISTRO RÁPIDO</span>
           <div className="flex items-center gap-4 mb-4">
@@ -230,7 +249,7 @@ export default function App() {
         <AnimatePresence mode="wait">
           <div key={screen}>
             {screen === 'login' && <LoginScreen onLoginSuccess={() => setScreen('inicio')} />}
-            {screen === 'inicio' && <DashboardScreen data={null} currentVal={currentGlucose} online={online} onSave={(v) => { setCurrentGlucose(v); saveGlucose(v); }} />}
+            {screen === 'inicio' && <DashboardScreen data={null} currentVal={currentGlucose} online={online} historyRecords={historyRecords} userMeals={userMeals} onSave={(v) => { setCurrentGlucose(v); saveGlucose(v); }} />}
             {screen === 'voz' && <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />}
             {screen === 'perfil' && <div className="p-10 text-center">Perfil de Usuario</div>}
           </div>

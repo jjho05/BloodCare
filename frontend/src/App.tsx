@@ -190,9 +190,17 @@ export default function App() {
   const stopRecording = () => { if (mediaRecorder.current?.state === 'recording') mediaRecorder.current.stop(); };
 
   const addManualMeal = async (food: any) => {
-    await db.meals.add({ ...food, user_id: 1, timestamp: new Date().toISOString(), synced: 0 });
-    loadLocalData();
-    showToast(`${food.nombre} guardado`);
+    const kcalValue = food.calorias_kcal || food.kcal || 0;
+    const mealRecord = {
+      food_name: food.nombre,
+      kcal: kcalValue,
+      user_id: 1,
+      timestamp: new Date().toISOString(),
+      synced: 0
+    };
+    await db.meals.add(mealRecord);
+    await loadLocalData();
+    showToast(`${food.nombre} guardado (~${kcalValue} kcal)`);
     if (online) syncAll();
   };
 

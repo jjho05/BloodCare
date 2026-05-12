@@ -120,7 +120,7 @@ const DashboardScreen = ({
         </div>
 
         {/* Security Detail */}
-        <div className="bg-white/50 backdrop-blur-md p-5 rounded-3xl border border-outline/5 flex items-center justify-between">
+        <div className="bg-white p-5 rounded-3xl border border-outline/10 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-success"></div>
             <span className="font-bold text-on-surface-variant text-sm tracking-tight">Privacidad Local Garantizada</span>

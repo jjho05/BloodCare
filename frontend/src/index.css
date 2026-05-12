@@ -29,20 +29,23 @@
 @layer base {
   body {
     @apply bg-surface text-on-surface font-sans antialiased;
-    background-image: radial-gradient(circle at top right, rgba(7, 225, 255, 0.03), transparent),
-                      radial-gradient(circle at bottom left, rgba(153, 172, 255, 0.03), transparent);
+    background-image: none; /* Eliminamos el gradiente de fondo para mayor limpieza */
   }
 }
 
 .premium-shadow {
-  box-shadow: 0 10px 40px -10px rgba(31, 72, 255, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(31, 72, 255, 0.05), 0 2px 10px -4px rgba(31, 72, 255, 0.03);
 }
 
 .ios-blur {
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  backdrop-filter: none; /* Desactivamos el blur pesado */
+  -webkit-backdrop-filter: none;
 }
 
 .grad-primary {
-  background: linear-gradient(135deg, #1F48FF 0%, #07E1FF 100%);
+  background: linear-gradient(135deg, #1F48FF 0%, #072ED4 100%); /* Gradiente más sólido y profundo */
+}
+
+.surface-card {
+  @apply bg-white border border-outline shadow-sm rounded-[32px];
 }

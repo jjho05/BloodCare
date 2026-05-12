@@ -8,7 +8,7 @@ interface HeaderProps {
 
 const Header = ({ title, online, showNotification = true }: HeaderProps) => {
   return (
-    <header className="glass-header ios-blur flex items-center justify-between px-6 h-18 w-full sticky top-0 z-40">
+    <header className="bg-white border-b border-outline/5 flex items-center justify-between px-6 h-18 w-full sticky top-0 z-40">
       <div className="flex items-center gap-2.5">
         <span className="text-2xl font-black text-primary tracking-tighter">{title}</span>
         {online !== undefined && (
@@ -18,7 +18,7 @@ const Header = ({ title, online, showNotification = true }: HeaderProps) => {
       <div className="flex items-center gap-3">
         {online !== undefined && (
           <span className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40">
-            {online ? 'Sincronizado' : 'Offline'}
+            {online ? 'En línea' : 'Sin conexión'}
           </span>
         )}
         {showNotification && (

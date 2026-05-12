@@ -18,7 +18,7 @@ const Navbar = ({ currentScreen, setScreen, onVoiceStart, isRecording }: NavbarP
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/70 ios-blur border-t border-outline/5 px-6 pt-3 pb-8">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-outline/10 px-6 pt-3 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
       <div className="flex items-end justify-between max-w-md mx-auto">
         {tabs.map((tab) => (
           <button

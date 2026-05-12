@@ -86,10 +86,10 @@ const ProfileScreen = ({ userSettings, onUpdate, onLogout, onClearMeals, onReset
             </button>
             <button
               onClick={onResetAll}
-              className="flex flex-col items-center justify-center gap-2 p-4 bg-on-surface/5 rounded-[28px] border border-on-surface/5 hover:bg-on-surface/10 transition-colors group"
+              className="flex flex-col items-center justify-center gap-2 p-4 bg-error/10 rounded-[28px] border-2 border-error/20 hover:bg-error/20 transition-all group shadow-lg shadow-error/5"
             >
-              <RefreshCcw className="w-5 h-5 text-on-surface/60 group-hover:rotate-180 transition-transform duration-500" />
-              <span className="text-[10px] font-black text-on-surface/60 uppercase tracking-widest text-center">Reiniciar Todo</span>
+              <RefreshCcw className="w-5 h-5 text-error group-hover:rotate-180 transition-transform duration-700" />
+              <span className="text-[10px] font-black text-error uppercase tracking-widest text-center">Reiniciar Todo</span>
             </button>
           </div>
         </div>

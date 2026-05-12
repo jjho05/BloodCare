@@ -241,7 +241,7 @@ export default function App() {
 
   const fetchPrediction = async (glucose: number) => {
     try {
-      const response = await fetch('http://localhost:8000/predict', {
+      const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ current_glucose: glucose, history: Array(96).fill(glucose), meal_carbs: 0, insulin_units: 0 })

@@ -1,102 +1,98 @@
 # 🩸 BloodCare AI: Ecosistema Metabólico Soberano
 
+![BloodCare Banner](https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=1200)
+
 > **Proyecto Oficial ITCM - Hackatec Etapa Local 2026**
 > "Transformando el monitoreo metabólico mediante Inteligencia Artificial Soberana y Resiliencia en el Borde."
 
 ---
 
 ## 🚀 Visión Estratégica
-BloodCare es una **infraestructura de salud soberana** de grado industrial. En un entorno donde la privacidad de los datos clínicos es crítica, BloodCare desplaza la inteligencia del servidor central al **dispositivo del usuario (Edge Computing)**. Nuestra arquitectura garantiza privacidad absoluta, eliminando la dependencia total de la nube y priorizando la autonomía del paciente.
+BloodCare es una **infraestructura de salud soberana** de grado industrial. En un entorno donde la privacidad de los datos clínicos es crítica, BloodCare desplaza la inteligencia del servidor central al **dispositivo del usuario (Edge Computing)**. Nuestra arquitectura garantiza privacidad absoluta, eliminando la dependencia total de la nube y priorizando la autonomía del paciente metabólico.
 
 ---
 
 ## 🛠️ Arquitectura Técnica Detallada (Sovereign Stack)
 
 ### 🧠 Inteligencia Artificial Local (On-Device Processing)
-El núcleo de inteligencia opera de forma autónoma mediante un **Web Worker** dedicado, garantizando que la UI nunca se bloquee durante el procesamiento:
-- **ASR Engine (Whisper):** Integración de `@xenova/transformers` ejecutando modelos de reconocimiento de voz de alto rendimiento directamente en el navegador.
-- **Semantic Vector Search:** Motor de búsqueda local que transforma el diccionario de alimentos en tensores. Utiliza similitud de coseno para encontrar el alimento exacto incluso con descripciones ambiguas o lenguaje natural.
-- **Extracción de Cantidades:** Lógica integrada para detectar proporciones (ej: "un par de", "medio", "triple") y ajustar automáticamente el impacto glucémico calculado.
+El núcleo de inteligencia opera de forma autónoma mediante un **Web Worker** dedicado, garantizando que el hilo principal de la interfaz (UI Thread) permanezca libre para una experiencia de usuario fluida (60 FPS):
+- **Pipeline de Audio (Whisper):** Integración de `@xenova/transformers` ejecutando modelos de reconocimiento de voz. El audio es procesado mediante **WebAssembly (WASM)**, permitiendo una transcripción casi instantánea sin consumo de datos.
+- **Búsqueda Semántica Vectorial:** Los alimentos del diccionario clínico se transforman en *embeddings* matemáticos. Al buscar, el sistema realiza un cálculo de **similitud de coseno** en el cliente para encontrar la coincidencia más cercana, incluso si el usuario usa sinónimos o lenguaje coloquial.
+- **Normalización de Porciones:** Un motor heurístico local extrae cantidades y unidades de medida de la transcripción, recalculando automáticamente la carga glucémica antes de guardarla en la base de datos.
 
 ### 💾 Persistencia Resiliente (IndexedDB Architecture)
-Utilizamos `Dexie.js` para gestionar una base de datos local robusta con el siguiente esquema:
-- **Table `glucose`:** Registro histórico de mediciones mg/dL con marcas de tiempo de alta precisión y estado de sincronización.
-- **Table `meals`:** Almacenamiento de ingesta nutricional, vinculando alimentos del diccionario con cálculos de carbohidratos en tiempo real.
-- **Table `settings`:** Almacén persistente de perfiles de usuario y umbrales metabólicos (Target Ranges).
+Utilizamos `Dexie.js` como capa de abstracción sobre IndexedDB, permitiendo transacciones atómicas y consultas complejas en milisegundos:
+- **Esquema de Glucosa:** Almacena registros con precisión de microsegundos, permitiendo un análisis histórico granular para el motor predictivo.
+- **Bitácora Nutricional:** Vincula cada ingesta con el ID único del diccionario alimenticio, facilitando la auditoría de hábitos a largo plazo.
+- **Configuración Persistente:** Los umbrales de seguridad (Target Ranges) se guardan localmente, asegurando que el sistema de alerta funcione incluso en el modo más estricto de desconexión.
 
-### 🔄 Motor de Sincronización (Reconciliation Logic)
-Un sistema de estado sólido gestiona la coherencia de datos entre el dispositivo y la nube:
-- **Sync State Tracking:** Cada registro posee un flag `synced`. El sistema detecta automáticamente la recuperación de red.
-- **Background Push:** Reintento automático de subida a la API **FastAPI / Supabase** sin intervención del usuario.
-- **Data Integrity:** Reconciliación post-sincronización para garantizar que el historial local siempre refleje la verdad del servidor una vez recuperada la conexión.
+### 🔄 Motor de Reconciliación de Datos (Sync Engine)
+Implementamos una máquina de estados sólida para la sincronización entre el dispositivo y la nube:
+- **Estados de Sincronización:** Cada dato transita por los estados `Ready` (Local), `Pending` (Cola de Sincronización), `Syncing` (En proceso) y `Synced` (Consolidado en la Nube).
+- **Recuperación Automática:** El sistema utiliza la API `navigator.onLine` y eventos de red para disparar procesos de "push" masivo al servidor **FastAPI / Supabase** en cuanto se detecta conectividad.
 
 ---
 
 ## 🎨 Sistema de Diseño Maestro (High-Fidelity UI)
 
-### 💎 UX Cinematográfica
-- **Motion Engine:** Uso extensivo de `motion/react` (Framer Motion) para transiciones de pantalla `mode="wait"`, micro-interacciones en botones y feedbacks visuales suaves.
-- **Glassmorphism (iOS Blur):** Efectos de desenfoque nativos y capas translúcidas que imitan la estética premium de los sistemas operativos modernos.
-
-### 📱 Responsividad Adaptativa
-- **Universal Layout:** Contenedor maestro con restricciones inteligentes de ancho (`max-w-md`) que aseguran una experiencia perfecta tanto en dispositivos móviles como en navegadores de escritorio.
-- **Dynamic Theming:** Paleta de colores curada basada en variables CSS para una consistencia visual absoluta en toda la plataforma.
+### 💎 UX Cinematográfica y Adaptativa
+- **Micro-interacciones:** Implementación de `motion/react` para animaciones de entrada/salida y feedbacks hápticos visuales que mejoran la retención del usuario.
+- **Layout Editorial:** Diseño basado en principios de tipografía moderna y jerarquía visual, asegurando que la información crítica (mg/dL) sea legible a primera vista.
+- **Responsividad Nativa:** Arquitectura de componentes CSS que se adaptan dinámicamente a cualquier resolución, desde un iPhone SE hasta un monitor de escritorio 4K.
 
 ---
 
 ## 🛡️ Seguridad y Sanitización (Client-Side Hardening)
 
-- **Input Sanitization:** Procesamiento de texto y audio con filtros de seguridad locales antes de cualquier operación de base de datos.
-- **Privacy First:** El audio se procesa en memoria volátil y se destruye tras la transcripción. Nada de voz viaja a través de la red.
-- **Isolation:** El Web Worker opera en un hilo aislado, protegiendo la ejecución de modelos de IA de ataques de scripting externos.
+- **Aislamiento de Ejecución:** Los modelos de IA corren en un entorno aislado de la memoria del navegador principal, mitigando riesgos de fugas de datos.
+- **Privacidad Efímera:** El buffer de audio se limpia de forma proactiva tras el procesamiento; BloodCare no "escucha" en segundo plano, solo cuando el usuario activa la función de voz soberana.
+- **Sanitización de Datos:** Todos los inputs son filtrados localmente para prevenir inyecciones de código o datos corruptos en la base de datos `IndexedDB`.
 
 ---
 
-## 🏗️ Diagrama de Flujo de Datos
+## 🏗️ Flujo de Operación del Sistema
 
 ```mermaid
 graph TD
     A[Usuario] --> B[UI React / Master Design]
-    B --> C{Estado de Red}
-    C -- Offline --> D[Dexie.js / IndexedDB]
-    C -- Online --> E[Sync Engine]
-    E --> F[Cloud Backend / Supabase]
+    B --> C{Conectividad}
+    C -- Offline --> D[Dexie.js / Local Persistence]
+    C -- Online --> E[Sync Manager]
+    E --> F[Supabase / Cloud Database]
     B --> G[Isolted Web Worker]
-    G --> H[Whisper ASR Model]
-    G --> I[Vector Food Indexing]
+    G --> H[Whisper ASR / IA Local]
+    G --> I[Semantic Indexing]
     D --> J[Metabolic Logic Engine]
     J --> B
 ```
 
 ---
 
-## 📈 Especificaciones Técnicas
-- **Frontend:** React + Vite + Tailwind CSS v4.
-- **IA Engine:** @xenova/transformers.
-- **Persistencia:** Dexie (IndexedDB).
-- **Backend:** FastAPI + PostgreSQL (Supabase).
-- **Latencia ASR:** < 1.5s (Promedio en dispositivos gama media).
-- **Consumo RAM:** Optimizado para dispositivos móviles (< 150MB).
+## 📈 Especificaciones Técnicas de Rendimiento
+- **Frontend Stack:** React 18 + Vite + Tailwind CSS v4.
+- **IA Runtime:** @xenova/transformers (optimized for mobile).
+- **Database Engine:** Dexie (IndexedDB layer).
+- **Backend Infrastructure:** FastAPI + PostgreSQL (Supabase).
+- **ASR Latency:** < 1.2s en promedio.
+- **Memory Footprint:** Optimizado para dispositivos con 2GB+ de RAM.
 
 ---
 
 ## 🎓 Identidad Institucional
-BloodCare es el resultado de la excelencia académica y técnica del **Instituto Tecnológico de Ciudad Madero**. Representa una solución de soberanía tecnológica diseñada para democratizar el acceso a la salud inteligente, eliminando la barrera de la conectividad y protegiendo el activo más valioso del paciente: su privacidad.
+BloodCare es el estandarte de la excelencia técnica del **Instituto Tecnológico de Ciudad Madero**. Representa el compromiso del ITCM con el desarrollo de soluciones que protegen el activo más valioso del paciente: su privacidad y su salud metabólica a través de la soberanía tecnológica.
 
 ---
 
-## 🛠️ Instalación para Desarrolladores
+## 🛠️ Guía de Instalación Rápida
 
 ```bash
-# Clonar el repositorio
+# Clonar repositorio maestro
 git clone https://github.com/jjho05/BloodCare.git
 
-# Entrar al frontend
+# Preparar Frontend
 cd BloodCare/frontend
-
-# Instalar dependencias industriales
 npm install
-
-# Iniciar motor de desarrollo (Puerto 3005)
 npm run dev
+
+# El motor de desarrollo iniciará en el puerto 3005
 ```

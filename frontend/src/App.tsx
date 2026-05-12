@@ -208,7 +208,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
-const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSettings, setScreen, onManualGlucose }: any) => {
+const DashboardScreen = ({ currentVal, online, historyRecords, userSettings, setScreen, onManualGlucose, onVoiceStart, isRecording }: any) => {
   const avg = historyRecords.length > 0 ? Math.round(historyRecords.reduce((a:any, b:any) => a + b.value, 0) / historyRecords.length) : 0;
   const max = historyRecords.length > 0 ? Math.max(...historyRecords.map((r:any) => r.value)) : 0;
   const min = historyRecords.length > 0 ? Math.min(...historyRecords.map((r:any) => r.value)) : 0;
@@ -221,18 +221,21 @@ const DashboardScreen = ({ currentVal, onSave, online, historyRecords, userSetti
       <main className="px-5 pt-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-on-surface mb-6 tracking-tight">¡Hola de nuevo!</h1>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <button onClick={() => setScreen('prediccion')} className="bg-primary text-white h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-primary/20">
-              <TrendingUp className="w-5 h-5" />
-              Predicción
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <button onClick={() => setScreen('voz')} className="bg-white text-zinc-500 h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-zinc-100 shadow-sm">
+              <Utensils className="w-5 h-5" />
+              <span className="text-[10px] uppercase tracking-tighter">Comida</span>
             </button>
-            <button onClick={() => setScreen('voz')} className="bg-white text-on-surface h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all border border-outline-variant/30">
-              <Mic className="w-5 h-5" />
-              Comida
+            <button 
+              onClick={onVoiceStart} 
+              className={`h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all shadow-lg ${isRecording ? 'bg-error animate-pulse text-white shadow-error/20' : 'bg-primary text-white shadow-primary/20'}`}
+            >
+              <Mic className="w-6 h-6" />
+              <span className="text-[10px] uppercase tracking-tighter">{isRecording ? '...' : 'Voz'}</span>
             </button>
-            <button onClick={() => onManualGlucose()} className="bg-white text-error h-12 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all border border-error/20">
+            <button onClick={onManualGlucose} className="bg-white text-error h-16 rounded-3xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border border-error/10 shadow-sm">
               <Droplet className="w-5 h-5 fill-current" />
-              Glucosa
+              <span className="text-[10px] uppercase tracking-tighter">Glucosa</span>
             </button>
           </div>
           <div className="flex justify-center">
@@ -669,7 +672,18 @@ export default function App() {
   const renderScreen = () => {
     switch (screen) {
       case 'login': return <LoginScreen onLogin={() => setScreen('inicio')} />;
-      case 'inicio': return <DashboardScreen currentVal={currentGlucose} online={online} historyRecords={historyRecords} userSettings={userSettings} setScreen={setScreen} onManualGlucose={() => setShowManualGlucose(true)} />;
+      case 'inicio': return (
+        <DashboardScreen 
+          currentVal={currentGlucose} 
+          online={online} 
+          historyRecords={historyRecords} 
+          userSettings={userSettings} 
+          setScreen={setScreen} 
+          onManualGlucose={() => setShowManualGlucose(true)} 
+          onVoiceStart={isRecording ? stopRecording : startRecording}
+          isRecording={isRecording}
+        />
+      );
       case 'prediccion': return <PredictionScreen historyRecords={chartData} data={predictionData} />;
       case 'voz': return <VoiceLogScreen userMeals={userMeals} onVoiceStart={isRecording ? stopRecording : startRecording} isRecording={isRecording} onAddManual={addManualMeal} aiStatus={aiStatus} online={online} />;
       case 'perfil': return <ProfileScreen userSettings={userSettings} onUpdate={updateSettings} onLogout={() => setScreen('login')} />;

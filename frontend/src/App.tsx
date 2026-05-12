@@ -491,13 +491,18 @@ export default function App() {
 
     worker.current = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     worker.current.onmessage = (e) => {
-      const { type, message, match, quantity } = e.data;
+      const { type, message, match, quantity, text } = e.data;
       if (type === 'status') setAiStatus(message);
-      if (type === 'result' && match && match.score > 0.6) {
-        const foodMatch = foodDictionary.diccionario.find(f => f.nombre === match.id);
-        if (foodMatch) {
-          const qty = quantity || 1;
-          addManualMeal({ ...foodMatch, nombre: qty > 1 ? `${qty}x ${foodMatch.nombre}` : foodMatch.nombre, carbohidratos_g: foodMatch.carbohidratos_g * qty });
+      if (type === 'result') {
+        if (match && match.score > 0.5) {
+          const foodMatch = foodDictionary.diccionario.find(f => f.nombre === match.id);
+          if (foodMatch) {
+            const qty = quantity || 1;
+            addManualMeal({ ...foodMatch, nombre: qty > 1 ? `${qty}x ${foodMatch.nombre}` : foodMatch.nombre, carbohidratos_g: foodMatch.carbohidratos_g * qty });
+            showToast(`¡Detectado! ${qty > 1 ? qty + 'x ' : ''}${foodMatch.nombre} ✅`);
+          }
+        } else {
+          showToast(`No entendí "${text || 'eso'}", ¿puedes repetir? 🧐`, 'error');
         }
       }
     };

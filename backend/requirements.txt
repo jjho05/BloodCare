@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+torch
+numpy
+pandas
+scikit-learn
+sqlalchemy
+psycopg2-binary
+python-dotenv
+python-multipart
+python-multipart
+google-generativeai

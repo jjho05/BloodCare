@@ -569,16 +569,26 @@ export default function App() {
         const arrayBuffer = await blob.arrayBuffer();
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        const rawData = audioBuffer.getChannelData(0);
         
-        // RESAMPLEO MANUAL (Interpolación Lineal)
-        const offlineCtx = new OfflineAudioContext(1, (audioBuffer.duration * 16000), 16000);
-        const source = offlineCtx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(offlineCtx.destination);
-        source.start();
-        const resampled = await offlineCtx.startRendering();
+        // RESAMPLEO MANUAL (Interpolación Lineal Pura)
+        const targetSampleRate = 16000;
+        const resampledLength = Math.floor(audioBuffer.duration * targetSampleRate);
+        const resampledData = new Float32Array(resampledLength);
+        const ratio = audioBuffer.sampleRate / targetSampleRate;
         
-        worker.current?.postMessage({ type: 'transcribe', audio: resampled.getChannelData(0) });
+        for (let i = 0; i < resampledLength; i++) {
+          const position = i * ratio;
+          const index = Math.floor(position);
+          const fraction = position - index;
+          if (index + 1 < rawData.length) {
+            resampledData[i] = rawData[index] * (1 - fraction) + rawData[index + 1] * fraction;
+          } else {
+            resampledData[i] = rawData[index];
+          }
+        }
+        
+        worker.current?.postMessage({ type: 'transcribe', audio: resampledData });
         await audioCtx.close();
       };
       

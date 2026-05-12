@@ -25,23 +25,23 @@ const Toast = ({ message, type }: { message: string, type: 'success' | 'info' | 
 );
 
 const Header = ({ title, online }: { title: string, online: boolean }) => (
-  <header className="flex items-center justify-between px-5 h-16 w-full sticky top-0 z-40 bg-white/80 ios-blur">
+  <header className="flex items-center justify-between px-5 h-16 w-full sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 ios-blur">
     <div className="flex items-center gap-2">
       <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center"><Droplet className="text-primary w-5 h-5" /></div>
-      <span className="font-bold text-xl tracking-tight text-on-surface">{title}</span>
+      <span className="font-bold text-xl tracking-tight text-on-surface dark:text-white">{title}</span>
       {online ? <Cloud className="w-4 h-4 text-success opacity-50" /> : <CloudOff className="w-4 h-4 text-error" />}
     </div>
-    <div className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden"><UserIcon className="w-5 h-5 text-on-surface-variant" /></div>
+    <div className="w-9 h-9 rounded-full bg-surface-container-high dark:bg-slate-800 border border-outline-variant/30 flex items-center justify-center overflow-hidden"><UserIcon className="w-5 h-5 text-on-surface-variant dark:text-slate-400" /></div>
   </header>
 );
 
 const Navbar = ({ currentScreen, setScreen }: { currentScreen: string, setScreen: (s: string) => void }) => {
   const tabs = [{ id: 'inicio', icon: Home, label: 'Inicio' }, { id: 'prediccion', icon: TrendingUp, label: 'IA' }, { id: 'voz', icon: Mic, label: 'Voz' }, { id: 'perfil', icon: UserIcon, label: 'Perfil' }];
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 ios-blur border-t border-outline-variant/30 px-6 pb-8 pt-3">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/80 ios-blur border-t border-outline-variant/30 dark:border-white/5 px-6 pb-8 pt-3">
       <div className="max-w-md mx-auto flex justify-between items-center">
         {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => setScreen(tab.id)} className={`flex flex-col items-center gap-1 transition-all ${currentScreen === tab.id ? 'text-primary scale-110' : 'text-on-surface-variant/40 hover:text-on-surface-variant'}`}><tab.icon className={`w-6 h-6 ${currentScreen === tab.id ? 'fill-primary/10' : ''}`} /><span className="text-[10px] font-bold uppercase tracking-tighter">{tab.label}</span></button>
+          <button key={tab.id} onClick={() => setScreen(tab.id)} className={`flex flex-col items-center gap-1 transition-all ${currentScreen === tab.id ? 'text-primary scale-110' : 'text-on-surface-variant/40 dark:text-slate-500 hover:text-on-surface-variant'}`}><tab.icon className={`w-6 h-6 ${currentScreen === tab.id ? 'fill-primary/10' : ''}`} /><span className="text-[10px] font-bold uppercase tracking-tighter">{tab.label}</span></button>
         ))}
       </div>
     </nav>
@@ -49,7 +49,7 @@ const Navbar = ({ currentScreen, setScreen }: { currentScreen: string, setScreen
 };
 
 const LoginScreen = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col items-center justify-center p-8 bg-surface text-on-surface relative overflow-hidden">
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen flex flex-col items-center justify-center p-8 bg-surface dark:bg-slate-950 text-on-surface dark:text-white relative overflow-hidden">
     <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center shadow-2xl mb-8"><Droplet className="text-white w-12 h-12" /></div>
     <h1 className="text-5xl font-black tracking-tighter mb-12">BloodCare</h1>
     <GoogleLogin onSuccess={onLoginSuccess} onError={() => {}} shape="pill" theme="filled_blue" width="320" />
@@ -66,31 +66,31 @@ const DashboardScreen = ({ data, currentVal, onSave, online, historyRecords, use
       <Header title="BloodCare" online={online} />
       <main className="px-5 pt-8 space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-5 rounded-3xl ios-card-shadow border border-outline-variant/10">
-            <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Promedio Hoy</span>
+          <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl ios-card-shadow border border-outline-variant/10 dark:border-white/5">
+            <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest dark:text-slate-400">Promedio Hoy</span>
             <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-2xl font-bold text-on-surface">{avg}</span>
-              <span className="text-[10px] opacity-40">mg/dL</span>
+              <span className="text-2xl font-bold text-on-surface dark:text-white">{avg}</span>
+              <span className="text-[10px] opacity-40 dark:text-slate-500">mg/dL</span>
             </div>
           </div>
-          <div className="bg-white p-5 rounded-3xl ios-card-shadow border border-outline-variant/10">
-            <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Total Carbs</span>
+          <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl ios-card-shadow border border-outline-variant/10 dark:border-white/5">
+            <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest dark:text-slate-400">Total Carbs</span>
             <div className="flex items-baseline gap-1 mt-1">
               <span className="text-2xl font-bold text-primary">{totalCarbs}</span>
-              <span className="text-[10px] opacity-40">g</span>
+              <span className="text-[10px] opacity-40 dark:text-slate-500">g</span>
             </div>
           </div>
         </div>
-        <div className="bg-white ios-card-shadow p-8 rounded-[32px] border border-outline-variant/20 flex flex-col items-center text-center">
-          <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 mb-2 uppercase tracking-wider">REGISTRO RÁPIDO</span>
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-[32px] border border-outline-variant/20 dark:border-white/5 flex flex-col items-center text-center ios-card-shadow">
+          <span className="text-[11px] font-mono font-bold text-on-surface-variant/60 dark:text-slate-400 mb-2 uppercase tracking-wider">REGISTRO RÁPIDO</span>
           <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => setVal(v => v - 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary">-</button>
-            <div className="flex items-baseline gap-1"><span className="text-6xl font-bold text-on-surface tracking-tight">{val}</span><span className="text-lg font-medium text-on-surface-variant/50">mg/dL</span></div>
-            <button onClick={() => setVal(v => v + 1)} className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xl text-primary">+</button>
+            <button onClick={() => setVal(v => v - 1)} className="w-10 h-10 rounded-full bg-surface-container-high dark:bg-slate-700 flex items-center justify-center font-bold text-xl text-primary">-</button>
+            <div className="flex items-baseline gap-1"><span className="text-6xl font-bold text-on-surface dark:text-white tracking-tight">{val}</span><span className="text-lg font-medium text-on-surface-variant/50">mg/dL</span></div>
+            <button onClick={() => setVal(v => v + 1)} className="w-10 h-10 rounded-full bg-surface-container-high dark:bg-slate-700 flex items-center justify-center font-bold text-xl text-primary">+</button>
           </div>
           <button onClick={() => onSave(val)} className="w-full h-12 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">Guardar Medición</button>
         </div>
-        <div className="bg-[#EEF2FF] p-5 rounded-2xl border border-primary/5 flex gap-4"><Brain className="text-primary w-6 h-6 flex-shrink-0" /><div><h3 className="font-bold text-primary mb-1">Análisis BloodCare IA</h3><p className="text-sm text-on-surface-variant leading-relaxed">{data?.narrative || "Generando análisis..."}</p></div></div>
+        <div className="bg-[#EEF2FF] dark:bg-primary/10 p-5 rounded-2xl border border-primary/5 flex gap-4"><Brain className="text-primary w-6 h-6 flex-shrink-0" /><div><h3 className="font-bold text-primary mb-1">Análisis BloodCare IA</h3><p className="text-sm text-on-surface-variant dark:text-slate-300 leading-relaxed">{data?.narrative || "Generando análisis..."}</p></div></div>
       </main>
     </motion.div>
   );
@@ -101,18 +101,18 @@ const VoiceLogScreen = ({ userMeals, onImageUpload, onVoiceStart, isRecording, o
   const results = query.length > 2 ? foodDictionary.diccionario.filter(f => f.nombre.toLowerCase().includes(query.toLowerCase()) || f.alias.some(a => a.toLowerCase().includes(query.toLowerCase()))).slice(0, 5) : [];
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white min-h-screen">
-      <header className="px-5 h-14 w-full sticky top-0 z-40 bg-white/80 ios-blur flex items-center justify-between">
-        <Settings className="w-6 h-6" /><span className="font-bold text-lg">Bitácora Soberana</span>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32 bg-white dark:bg-slate-900 min-h-screen">
+      <header className="px-5 h-14 w-full sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 ios-blur flex items-center justify-between">
+        <Settings className="w-6 h-6 dark:text-white" /><span className="font-bold text-lg dark:text-white">Bitácora Soberana</span>
         {online ? <Cloud className="w-4 h-4 text-success opacity-50" /> : <CloudOff className="w-4 h-4 text-error" />}
       </header>
       <main className="p-5 space-y-8">
-        <div><div className="flex items-center gap-1.5 text-on-surface-variant/80 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" /> {aiStatus}</div><h1 className="text-4xl font-bold mb-2">¿Qué comiste?</h1></div>
-        <div className="relative z-50"><input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Busca tu comida..." className="w-full h-14 bg-surface-container-low rounded-2xl px-5 focus:outline-none focus:ring-2 focus:ring-primary/20" />
-        {results.length > 0 && <div className="absolute top-16 left-0 right-0 bg-white border rounded-2xl shadow-2xl overflow-hidden">{results.map((f, i) => (<button key={i} onClick={() => { onAddManual(f); setQuery(''); }} className="w-full p-4 text-left hover:bg-primary/5 flex justify-between border-b last:border-0"><div><p className="font-bold">{f.nombre}</p><p className="text-xs opacity-50">{f.porcion}</p></div><div className="flex items-center gap-2 text-primary"><span className="font-bold">{f.carbohidratos_g}g</span><Plus className="w-4 h-4" /></div></button>))}</div>}</div>
+        <div><div className="flex items-center gap-1.5 text-on-surface-variant/80 dark:text-slate-400 font-mono font-bold text-[10px] mb-2 uppercase tracking-widest"><Lock className="w-3 h-3" /> {aiStatus}</div><h1 className="text-4xl font-bold mb-2 dark:text-white">¿Qué comiste?</h1></div>
+        <div className="relative z-50"><input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Busca tu comida..." className="w-full h-14 bg-surface-container-low dark:bg-slate-800 dark:text-white rounded-2xl px-5 focus:outline-none focus:ring-2 focus:ring-primary/20" />
+        {results.length > 0 && <div className="absolute top-16 left-0 right-0 bg-white dark:bg-slate-800 border dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden">{results.map((f, i) => (<button key={i} onClick={() => { onAddManual(f); setQuery(''); }} className="w-full p-4 text-left hover:bg-primary/5 flex justify-between border-b dark:border-white/5 last:border-0"><div><p className="font-bold dark:text-white">{f.nombre}</p><p className="text-xs opacity-50 dark:text-slate-400">{f.porcion}</p></div><div className="flex items-center gap-2 text-primary"><span className="font-bold">{f.carbohidratos_g}g</span><Plus className="w-4 h-4" /></div></button>))}</div>}</div>
         <div className="space-y-4">
-          <h3 className="font-bold text-on-surface-variant/60 text-xs uppercase tracking-widest">Registros</h3>
-          {userMeals.map((log: any, i: number) => (<div key={i} className="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl border border-outline-variant/10"><div className="flex items-center gap-4"><div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm"><Utensils /></div><div><h4 className="font-bold text-lg">{log.food_name}</h4><p className="text-xs opacity-60">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {log.synced === 0 && '⌛'}</p></div></div><span className="text-lg font-bold text-primary">{log.carbs_g}g</span></div>))}
+          <h3 className="font-bold text-on-surface-variant/60 dark:text-slate-500 text-xs uppercase tracking-widest">Registros</h3>
+          {userMeals.map((log: any, i: number) => (<div key={i} className="flex items-center justify-between p-4 bg-surface-container-low dark:bg-slate-800/50 rounded-2xl border border-outline-variant/10 dark:border-white/5"><div className="flex items-center gap-4"><div className="w-12 h-12 bg-white dark:bg-slate-700 rounded-2xl flex items-center justify-center text-primary shadow-sm"><Utensils /></div><div><h4 className="font-bold text-lg dark:text-white">{log.food_name}</h4><p className="text-xs opacity-60 dark:text-slate-400">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} {log.synced === 0 && '⌛'}</p></div></div><span className="text-lg font-bold text-primary">{log.carbs_g}g</span></div>))}
         </div>
       </main>
       <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-3">
@@ -212,7 +212,7 @@ export default function App() {
 
   const addManualMeal = async (food: any) => {
     const newMeal = { user_id: 1, food_name: food.nombre, carbs_g: food.carbohidratos_g, timestamp: new Date().toISOString(), synced: 0 };
-    const id = await db.meals.add(newMeal);
+    await db.meals.add(newMeal);
     loadLocalData();
     showToast(`${food.nombre} guardado localmente`);
     if (online) syncAll();
@@ -221,6 +221,7 @@ export default function App() {
   const saveGlucose = async (val: number) => {
     const newRecord = { user_id: 1, value: val, timestamp: new Date().toISOString(), note: 'Registro manual', synced: 0 };
     await db.glucose.add(newRecord);
+    loadLocalData();
     showToast('Glucosa guardada localmente');
     if (online) {
       try {
@@ -233,21 +234,12 @@ export default function App() {
   useEffect(() => { if (screen !== 'login') { fetchMeals(); } }, [screen]);
 
   const fetchMeals = async () => {
-    if (online) {
-      try {
-        const response = await fetch('https://bloodcare-backend-jmv5.onrender.com/records/meal?user_id=1');
-        const data = await response.json();
-        // Mezclar con locales no sincronizados
-        loadLocalData();
-      } catch (error) { loadLocalData(); }
-    } else {
-      loadLocalData();
-    }
+    loadLocalData();
   };
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div className="max-w-md mx-auto min-h-screen relative bg-surface">
+      <div className="max-w-md mx-auto min-h-screen relative bg-surface dark:bg-[#0f172a] text-on-surface dark:text-slate-100 transition-colors duration-300">
         <AnimatePresence>{toast && <Toast message={toast.message} type={toast.type} />}</AnimatePresence>
         <AnimatePresence mode="wait">
           <div key={screen}>

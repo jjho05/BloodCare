@@ -74,7 +74,7 @@ const ProfileScreen = ({ userSettings, onUpdate, onLogout }: ProfileScreenProps)
           onClick={onLogout}
           className="w-full h-14 border-2 border-error/20 text-error rounded-2xl font-bold active:scale-95 transition-all flex items-center justify-center gap-2"
         >
-          Cerrar Sesión Soberana
+          Cerrar Sesión
         </button>
       </main>
     </motion.div>

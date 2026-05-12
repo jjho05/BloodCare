@@ -24,7 +24,7 @@ export default function App() {
   const [predictionData, setPredictionData] = useState<PredictionData | null>(null);
   const [historyRecords, setHistoryRecords] = useState<any[]>([]);
   const [userMeals, setUserMeals] = useState<any[]>([]);
-  const [userSettings, setUserSettings] = useState<UserSettings>({ name: 'Usuario ITCM', target_min: 70, target_max: 140 });
+  const [userSettings, setUserSettings] = useState<UserSettings>({ name: 'Usuario', target_min: 70, target_max: 140 });
   const [online, setOnline] = useState(navigator.onLine);
   const [aiStatus, setAiStatus] = useState('IA Local Lista');
   const [isRecording, setIsRecording] = useState(false);

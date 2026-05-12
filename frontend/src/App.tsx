@@ -22,6 +22,15 @@ interface PredictionData {
 
 // --- Components ---
 
+const Toast = ({ message, type }: { message: string, type: 'success' | 'info' | 'error' }) => (
+  <motion.div initial={{ y: -100, opacity: 0 }} animate={{ y: 20, opacity: 1 }} exit={{ y: -100, opacity: 0 }} className="fixed top-0 left-0 right-0 z-[100] flex justify-center px-6">
+    <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl ios-blur border ${type === 'success' ? 'bg-success/90 border-success/20 text-white' : type === 'error' ? 'bg-error/90 border-error/20 text-white' : 'bg-primary/90 border-primary/20 text-white'}`}>
+      {type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+      <span className="font-bold text-sm">{message}</span>
+    </div>
+  </motion.div>
+);
+
 const Navbar = ({ currentScreen, setScreen }: { currentScreen: Screen, setScreen: (s: Screen) => void }) => {
   const tabs: { id: Screen, icon: any, label: string }[] = [
     { id: 'inicio', icon: Home, label: 'Inicio' },

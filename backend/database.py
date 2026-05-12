@@ -35,6 +35,23 @@ class User(Base):
     full_name = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class GlucoseRecord(Base):
+    __tablename__ = "glucose_records"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    value = Column(Float)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    note = Column(String, nullable=True)
+
+class MealLog(Base):
+    __tablename__ = "meal_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    food_name = Column(String)
+    carbs_g = Column(Float)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    image_url = Column(String, nullable=True) # Para la visión AI futura
+
 def get_db():
     db = SessionLocal()
     try:

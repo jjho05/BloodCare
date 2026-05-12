@@ -172,7 +172,7 @@ const DashboardScreen = ({ data, currentVal }: { data: PredictionData | null, cu
   );
 };
 
-const PredictionScreen = ({ chartData, data }: { chartData: any[], data: PredictionData | null }) => {
+const PredictionScreen = ({ historyRecords, data }: { historyRecords: any[], data: PredictionData | null }) => {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
       <header className="fixed top-0 z-40 w-full h-11 bg-white/80 ios-blur flex items-center px-4 border-b border-outline-variant/30">
@@ -293,7 +293,7 @@ export default function App() {
     switch (screen) {
       case 'login': return <LoginScreen onLogin={() => setScreen('inicio')} />;
       case 'inicio': return <DashboardScreen data={predictionData} currentVal={currentGlucose} />;
-      case 'prediccion': return <PredictionScreen chartData={chartData} data={predictionData} />;
+      case 'prediccion': return <PredictionScreen historyRecords={historyRecords} data={predictionData} />;
       case 'voz': return <VoiceLogScreen />;
       case 'perfil': return <div className="p-10 text-center">Perfil de Usuario</div>;
       default: return <DashboardScreen data={predictionData} currentVal={currentGlucose} />;
